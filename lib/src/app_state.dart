@@ -14,7 +14,7 @@ class AppState {
   final accountDetails = ValueNotifier<AccountDetails?>(null);
 
   /// True if the app is synchrnonising
-  final synchronising = ValueNotifier<bool>(false);
+  final isSynchronising = ValueNotifier<bool>(false);
 
   AppState() {
     // When the email is updated, also update whether we are logged in or not

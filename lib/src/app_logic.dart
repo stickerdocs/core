@@ -890,7 +890,7 @@ class AppLogic {
 
   Future<AppLogicResult> sync({bool force = false}) async {
     return await syncMutex.protect(() async {
-      appState.synchronising.value = true;
+      appState.isSynchronising.value = true;
 
       // Start by getting the account info
       await updateAccountDetails();
@@ -905,7 +905,7 @@ class AppLogic {
       final result = await _syncService.sync();
 
       if (result != true) {
-        appState.synchronising.value = false;
+        appState.isSynchronising.value = false;
 
         //?
         return AppLogicResult.apiError;
@@ -920,7 +920,7 @@ class AppLogic {
       // Download files
       await _fileService.downloadFiles();
 
-      appState.synchronising.value = false;
+      appState.isSynchronising.value = false;
 
       // updateUi();
       return AppLogicResult.ok;
