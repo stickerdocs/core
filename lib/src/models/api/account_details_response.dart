@@ -1,0 +1,53 @@
+import 'dart:convert';
+
+import 'package:stickerdocs_core/src/models/account_details.dart';
+
+class AccountDetailsResponse {
+  final String name;
+  final String email;
+  final bool subscriptionActive;
+  final bool canUpload;
+  final int storageQuotaBytes;
+  final int storageBytesUsed;
+  final int invitationQuota;
+  final int invitationUsed;
+
+  AccountDetailsResponse({
+    required this.name,
+    required this.email,
+    required this.subscriptionActive,
+    required this.canUpload,
+    required this.storageQuotaBytes,
+    required this.storageBytesUsed,
+    required this.invitationQuota,
+    required this.invitationUsed,
+  });
+
+  AccountDetailsResponse.fromJson(Map<String, dynamic> map)
+      : name = map['name'],
+        email = map['email'],
+        subscriptionActive = map['subscription_active'],
+        canUpload = map['can_upload'],
+        storageQuotaBytes = map['storage_quota_bytes'],
+        storageBytesUsed = map['storage_bytes_used'],
+        invitationQuota = map['invitation_quota'],
+        invitationUsed = map['invitation_used'];
+
+  static AccountDetailsResponse deserialize(String data) {
+    Map<String, dynamic> decoded = jsonDecode(data);
+    return AccountDetailsResponse.fromJson(decoded);
+  }
+
+  AccountDetails toAccountDetails() {
+    return AccountDetails(
+      name: name,
+      email: email,
+      subscriptionActive: subscriptionActive,
+      canUpload: canUpload,
+      storageQuotaBytes: storageQuotaBytes,
+      storageBytesUsed: storageBytesUsed,
+      invitationQuota: invitationQuota,
+      invitationUsed: invitationUsed,
+    );
+  }
+}
