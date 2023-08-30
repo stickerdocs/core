@@ -166,6 +166,14 @@ class AppLogic {
     appState.trustedUsers.value = await _db.getTrustedUsers();
   }
 
+  Future<bool> isRegistrationOpen() async {
+    return await _api.isRegistrationOpen();
+  }
+
+  Future<bool> joinRegistrationWaitingList(String email) async {
+    return await _api.joinWaitingList(email);
+  }
+
   Future<AppLogicResult> register(
     String name,
     String email,

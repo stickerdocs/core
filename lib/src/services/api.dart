@@ -149,6 +149,24 @@ class APIService {
     return response;
   }
 
+  Future<bool> isRegistrationOpen() async {
+    var response = await sendGet('account/register');
+
+    if (response.statusCode == HttpStatus.ok) {
+      return response.body == 'Open';
+    }
+
+    return false;
+  }
+
+  Future<bool> joinWaitingList(String email) async {
+    var response = await sendPost('account/register/waiting_list', body: {
+      'email': email,
+    });
+    
+    return response.statusCode == HttpStatus.ok;
+  }
+
   Future<RegisterResponse?> register(RegisterRequest request) async {
     var response = await sendPost('account/register', body: request);
 
