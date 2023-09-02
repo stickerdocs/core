@@ -27,7 +27,7 @@ class AppVersion {
     final myVersionParts = appVersion.split('.');
     final latestVersionParts = version.split('.');
 
-    for (var index = 0; index < 3; index++) {
+    for (var index = 0; index < 4; index++) {
       if (int.parse(latestVersionParts[index]) >
           int.parse(myVersionParts[index])) {
         return true;

@@ -163,7 +163,7 @@ class APIService {
     var response = await sendPost('account/register/waiting_list', body: {
       'email': email,
     });
-    
+
     return response.statusCode == HttpStatus.ok;
   }
 
