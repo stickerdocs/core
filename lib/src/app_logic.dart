@@ -150,7 +150,7 @@ class AppLogic {
     return await api.checkVersion(packaging);
   }
 
-  Future<bool> sendSupportEnquiry(String email, String message) async {
+  Future<bool> sendSupportEnquiry(String? email, String message) async {
     return await api.sendSupportEnquiry(email, message);
   }
 

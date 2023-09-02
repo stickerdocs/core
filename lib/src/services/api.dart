@@ -240,10 +240,10 @@ class APIService {
     return response.statusCode == HttpStatus.ok;
   }
 
-  Future<bool> sendSupportEnquiry(String email, String message) async {
+  Future<bool> sendSupportEnquiry(String? email, String message) async {
     var body = {'message': message};
 
-    if (email.isNotEmpty) {
+    if (email != null && email.isNotEmpty) {
       body['email'] = email;
     }
 
