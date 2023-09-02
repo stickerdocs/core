@@ -897,6 +897,10 @@ class AppLogic {
   }
 
   Future<AppLogicResult> sync({bool force = false}) async {
+    if (appState.accountDetails.value == null) {
+      return AppLogicResult.notLoggedIn;
+    }
+
     return await syncMutex.protect(() async {
       appState.isSynchronising.value = true;
 
