@@ -25,7 +25,7 @@ dependencies:
   sodium_libs: ^2.1.1+1
   sqflite: ^2.3.0
   sqflite_common_ffi: ^2.3.0+2
-  uuid: ^4.0.0
+  uuid: 3.0.5
   xml: ^6.3.0
 
 dev_dependencies:
