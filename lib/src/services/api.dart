@@ -151,7 +151,7 @@ class APIService {
 
   Future<bool> isRegistrationOpen() async {
     var response = await sendGet('account/register');
-    return response.statusCode == HttpStatus.ok && response.body == 'Open';
+    return response.statusCode == HttpStatus.ok && response.body == 'open';
   }
 
   Future<bool> joinWaitingList(String email) async {
@@ -375,7 +375,7 @@ class APIService {
   }
 
   Future<List<EventFile>?> sync([EventFile? eventFile]) async {
-    final response = await sendPost('sync/self', body: eventFile);
+    final response = await sendPut('sync/self', body: eventFile);
 
     if (response.statusCode == HttpStatus.ok) {
       return EventFile.deserialize(response.body);
@@ -386,7 +386,7 @@ class APIService {
 
   Future<List<EventFile>?> syncShared(String userId,
       [EventFile? eventFile]) async {
-    final response = await sendPost('sync/share/$userId', body: eventFile);
+    final response = await sendPut('sync/share/$userId', body: eventFile);
 
     if (response.statusCode == HttpStatus.ok) {
       return EventFile.deserialize(response.body);
@@ -400,7 +400,7 @@ class APIService {
         ? 'self'
         : 'share/${eventFile.sourceUserId}';
 
-    final response = await sendPost('sync/$owner/success',
+    final response = await sendPost('sync/$owner',
         body: {'first_timestamp': eventFile.firstTimestamp});
 
     return response.statusCode == HttpStatus.ok;
