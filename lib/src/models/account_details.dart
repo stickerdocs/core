@@ -6,7 +6,7 @@ class AccountDetails {
   final int? storageQuotaBytes;
   final int? storageBytesUsed;
   final int? invitationQuota;
-  final int? invitationUsed;
+  final int? invitationsUsed;
 
   AccountDetails({
     required this.email,
@@ -16,6 +16,6 @@ class AccountDetails {
     this.storageQuotaBytes,
     this.storageBytesUsed,
     this.invitationQuota,
-    this.invitationUsed,
+    this.invitationsUsed,
   });
 }

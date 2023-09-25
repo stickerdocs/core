@@ -10,7 +10,7 @@ class AccountDetailsResponse {
   final int storageQuotaBytes;
   final int storageBytesUsed;
   final int invitationQuota;
-  final int invitationUsed;
+  final int invitationsUsed;
 
   AccountDetailsResponse({
     required this.name,
@@ -20,7 +20,7 @@ class AccountDetailsResponse {
     required this.storageQuotaBytes,
     required this.storageBytesUsed,
     required this.invitationQuota,
-    required this.invitationUsed,
+    required this.invitationsUsed,
   });
 
   AccountDetailsResponse.fromJson(Map<String, dynamic> map)
@@ -31,7 +31,7 @@ class AccountDetailsResponse {
         storageQuotaBytes = map['storage_quota_bytes'],
         storageBytesUsed = map['storage_bytes_used'],
         invitationQuota = map['invitation_quota'],
-        invitationUsed = map['invitation_used'];
+        invitationsUsed = map['invitations_used'];
 
   static AccountDetailsResponse deserialize(String data) {
     Map<String, dynamic> decoded = jsonDecode(data);
@@ -47,7 +47,7 @@ class AccountDetailsResponse {
       storageQuotaBytes: storageQuotaBytes,
       storageBytesUsed: storageBytesUsed,
       invitationQuota: invitationQuota,
-      invitationUsed: invitationUsed,
+      invitationsUsed: invitationsUsed,
     );
   }
 }
