@@ -411,3 +411,8 @@ class APIService {
     return response.statusCode == HttpStatus.ok;
   }
 }
+
+Future<bool> reportHarmfulContent(ReportHarmfulContent harmfulContent) async {
+  final response = await sendPost('support/report-harmful-content',  body: harmfulContent);
+  return response.statusCode == HttpStatus.ok;
+}

@@ -1078,3 +1078,11 @@ class AppLogic {
     return newFile;
   }
 }
+
+Future<bool> reportHarmfulContent() async {
+  if (!await _api
+        .reportHarmfulContent()) {
+      return false;
+    }
+  return true;
+}
