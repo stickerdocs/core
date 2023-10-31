@@ -22,6 +22,7 @@ import 'package:stickerdocs_core/src/models/event_file.dart';
 import 'package:stickerdocs_core/src/models/api/encrypted_invitation.dart';
 import 'package:stickerdocs_core/src/models/invitation_info.dart';
 import 'package:stickerdocs_core/src/models/api/invitation_request.dart';
+import 'package:stickerdocs_core/src/models/api/report_harmful_content.dart';
 import 'package:stickerdocs_core/src/utils.dart';
 import 'package:stickerdocs_core/src/main.dart';
 
@@ -410,9 +411,10 @@ class APIService {
     final response = await sendDelete('account');
     return response.statusCode == HttpStatus.ok;
   }
-}
 
-Future<bool> reportHarmfulContent(ReportHarmfulContent harmfulContent) async {
-  final response = await sendPost('support/report-harmful-content',  body: harmfulContent);
-  return response.statusCode == HttpStatus.ok;
+  Future<bool> reportHarmfulContent(ReportHarmfulContent harmfulContent) async {
+    final response =
+        await sendPost('support/report-harmful-content', body: harmfulContent);
+    return response.statusCode == HttpStatus.ok;
+  }
 }
