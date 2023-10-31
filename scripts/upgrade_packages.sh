@@ -4,6 +4,7 @@
 set -e
 
 flutter pub upgrade --major-versions
+flutter pub upgrade
 flutter clean
 flutter pub get
 flutter pub outdated
