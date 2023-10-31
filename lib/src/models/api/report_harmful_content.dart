@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:stickerdocs_core/src/utils.dart';
 
-class ReportHamrfulContent {
+class ReportHarmfulContent {
   String sharedByUserId;
   String fileId;
   Uint8List encryptedHarmfulContent;
@@ -11,7 +11,7 @@ class ReportHamrfulContent {
   String md5;
   String sharedFileEncryptedPassword;
 
-  ReportHamrfulContent({
+  ReportHarmfulContent({
     required this.sharedByUserId,
     required this.fileId,
     required this.encryptedHarmfulContent,
