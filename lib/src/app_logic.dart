@@ -12,6 +12,7 @@ import 'package:stickerdocs_core/src/app_state.dart';
 import 'package:stickerdocs_core/src/importers/evernote.dart';
 import 'package:stickerdocs_core/src/models/api/account_details_response.dart';
 import 'package:stickerdocs_core/src/models/api/new_version.dart';
+import 'package:stickerdocs_core/src/models/api/report_harmful_content.dart';
 import 'package:stickerdocs_core/src/models/db/block.dart';
 import 'package:stickerdocs_core/src/models/invitation.dart';
 import 'package:stickerdocs_core/src/services/api.dart';
@@ -1077,12 +1078,21 @@ class AppLogic {
 
     return newFile;
   }
-}
 
-Future<bool> reportHarmfulContent() async {
-  if (!await _api
-        .reportHarmfulContent()) {
+  Future<bool> reportHarmfulContent() async {
+    final todo = Uint8List.fromList([1, 2, 3]);
+    final harmfulContent = ReportHarmfulContent(
+        sharedByUserId: 'TODO',
+        fileId: 'TODO',
+        encryptedHarmfulContent: todo,
+        signedHarmfulContent: todo,
+        sha256: 'todo',
+        md5: 'todo',
+        sharedFileEncryptedPassword: 'todo');
+        
+    if (!await _api.reportHarmfulContent(harmfulContent)) {
       return false;
     }
-  return true;
+    return true;
+  }
 }
