@@ -32,6 +32,13 @@ class APIService {
   final String appVersion;
   final http.Client _client = http.Client();
 
+  static const _userAgentHeader = 'User-Agent';
+  static const _clientIdHeader = 'Client-Id';
+  static const _userIdHeader = 'User-Id';
+  static const _sourceUserIdHeader = 'Source-User-Id';
+  static const _requestIdHeader = 'Request-Id';
+  static const _signatureHeader = 'Signature';
+
   APIService(this.baseUrl, this.appName, this.appVersion);
 
   Future<AppVersion?> checkVersion(String packaging) async {
@@ -99,15 +106,15 @@ class APIService {
     SplayTreeMap<String, String> headers = SplayTreeMap<String, String>();
 
     headers.addAll({
-      'user-agent': 'StickerDocs App/$appVersion',
-      'client-id': await config.clientId,
+      _userAgentHeader: 'StickerDocs App/$appVersion',
+      _clientIdHeader: await config.clientId,
     });
 
     final userId = await config.userId;
 
     if (userId != null) {
-      headers['user-id'] = userId;
-      headers['request-id'] = newUuid();
+      headers[_userIdHeader] = userId;
+      headers[_requestIdHeader] = newUuid();
     }
 
     if (additionalHeaders != null) {
@@ -118,7 +125,7 @@ class APIService {
     var signature = await crypto.signApiRequest(path, serializedHeaders, body);
 
     if (signature != null) {
-      headers['signature'] = signature;
+      headers[_signatureHeader] = signature;
     }
 
     return headers;
@@ -178,7 +185,7 @@ class APIService {
     var response = await sendPost('account/register/verify', body: {
       'challenge_response': uint8ListToBase64(challengeResponse),
     }, additionalHeaders: {
-      'user-id': userId
+      _userIdHeader: userId
     });
 
     if (response.statusCode == HttpStatus.ok) {
@@ -218,7 +225,7 @@ class APIService {
     var response = await sendPost('account/login/verify', body: {
       'challenge_response': uint8ListToBase64(challengeResponse),
     }, additionalHeaders: {
-      'user-id': userId
+      _userIdHeader: userId
     });
 
     if (response.statusCode == HttpStatus.ok) {
@@ -284,7 +291,7 @@ class APIService {
     final headers = <String, String>{};
 
     if (sourceUserId != null) {
-      headers['source-user-id'] = sourceUserId;
+      headers[_sourceUserIdHeader] = sourceUserId;
     }
 
     var response = await sendGet('file/$fileId', additionalHeaders: headers);
@@ -300,7 +307,7 @@ class APIService {
     final headers = <String, String>{};
 
     if (fileChunk.sourceUserId != null) {
-      headers['source-user-id'] = fileChunk.sourceUserId!;
+      headers[_sourceUserIdHeader] = fileChunk.sourceUserId!;
     }
 
     var response = await sendGet(
