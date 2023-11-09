@@ -2,8 +2,8 @@ import 'package:stickerdocs_core/src/models/db/document.dart';
 import 'package:stickerdocs_core/src/models/db/db_model.dart';
 
 class BlockDocument extends Document implements DBModel {
-  static const String tableName = 'block_document';
-  static const String blocksKey = 'blocks';
+  static const tableName = 'block_document';
+  static const blocksKey = 'blocks';
 
   String? blocks;
 

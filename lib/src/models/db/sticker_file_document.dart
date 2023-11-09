@@ -1,9 +1,9 @@
 import 'package:stickerdocs_core/src/models/db/db_model.dart';
 
 class StickerFileDocument extends DBModel {
-  static const String tableName = 'sticker_file_document';
-  static const String stickerIdKey = 'sticker_id';
-  static const String fileDocumentIdKey = 'file_document_id';
+  static const tableName = 'sticker_file_document';
+  static const stickerIdKey = 'sticker_id';
+  static const fileDocumentIdKey = 'file_document_id';
 
   String stickerId;
   String fileDocumentId;

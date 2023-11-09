@@ -3,8 +3,8 @@ import 'package:stickerdocs_core/src/utils.dart';
 const dbModelDeleted = 'deleted';
 
 abstract class DBModel {
-  static const String createdKey = 'created';
-  static const String updatedKey = 'updated';
+  static const createdKey = 'created';
+  static const updatedKey = 'updated';
 
   /// The corresponding backing DB table name
   late String table;

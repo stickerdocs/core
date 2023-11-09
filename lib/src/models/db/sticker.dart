@@ -5,7 +5,7 @@ import 'package:stickerdocs_core/src/models/db/db_model.dart';
 import 'package:stickerdocs_core/src/utils.dart';
 
 class Sticker extends DBModel {
-  static const String tableName = 'sticker';
+  static const tableName = 'sticker';
 
   String name;
   String? style = 'border';

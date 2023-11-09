@@ -1,10 +1,10 @@
 import 'package:stickerdocs_core/src/models/db/db_model.dart';
 
 class SharedObject extends DBModel {
-  static const String tableName = 'shared_object';
-  static const String objectTypeKey = 'type';
-  static const String objectIdKey = 'object_id';
-  static const String trustedUserIdKey = 'trusted_user_id';
+  static const tableName = 'shared_object';
+  static const objectTypeKey = 'type';
+  static const objectIdKey = 'object_id';
+  static const trustedUserIdKey = 'trusted_user_id';
 
   String objectType;
   String objectId;

@@ -21,9 +21,9 @@ BlockType _blockTypeFromString(String val) {
 }
 
 class Block extends DBModel {
-  static const String tableName = 'block';
-  static const String typeKey = 'type';
-  static const String dataKey = 'data';
+  static const tableName = 'block';
+  static const typeKey = 'type';
+  static const dataKey = 'data';
 
   BlockType type;
   String? data;

@@ -2,7 +2,7 @@ import 'package:stickerdocs_core/src/models/db/db_model.dart';
 import 'package:stickerdocs_core/src/utils.dart';
 
 abstract class Document extends DBModel {
-  static const String titleKey = 'title';
+  static const titleKey = 'title';
 
   /// The title of the document
   String? title;

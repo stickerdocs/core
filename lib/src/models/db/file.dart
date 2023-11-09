@@ -25,11 +25,10 @@ class File extends DBModel {
   Uint8List? _encryptionKey;
   String? _sourceUserId;
 
-  static const String tableName = 'file';
-  static const String sourceUserIdKey = 'source_user_id';
-  static const String encryptionKeyKey = 'encryption_key';
-  static const String downloadedFromSourceUserKey =
-      'downloaded_from_source_user';
+  static const tableName = 'file';
+  static const sourceUserIdKey = 'source_user_id';
+  static const encryptionKeyKey = 'encryption_key';
+  static const downloadedFromSourceUserKey = 'downloaded_from_source_user';
 
   File({
     required this.name,

@@ -1,11 +1,11 @@
 import 'package:stickerdocs_core/src/models/db/db_model.dart';
 
 class SharedSticker extends DBModel {
-  static const String tableName = 'shared_sticker';
-  static const String stickerIdKey = 'sticker_id';
-  static const String trustedUserIdKey = 'trusted_user_id';
-  static const String sharedByMeKey = 'shared_by_me';
-  static const String ignoreExternalEventsKey = 'ignore_external_events';
+  static const tableName = 'shared_sticker';
+  static const stickerIdKey = 'sticker_id';
+  static const trustedUserIdKey = 'trusted_user_id';
+  static const sharedByMeKey = 'shared_by_me';
+  static const ignoreExternalEventsKey = 'ignore_external_events';
 
   String stickerId;
   String trustedUserId;

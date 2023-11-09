@@ -4,7 +4,7 @@ import 'package:stickerdocs_core/src/models/db/db_model.dart';
 import 'package:stickerdocs_core/src/utils.dart';
 
 class TrustedUser extends DBModel {
-  static const String tableName = 'trusted_user';
+  static const tableName = 'trusted_user';
 
   String userId;
   String name;

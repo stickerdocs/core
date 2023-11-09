@@ -4,7 +4,7 @@ import 'package:stickerdocs_core/src/models/db/db_model.dart';
 import 'package:stickerdocs_core/src/utils.dart';
 
 class InvitedUser extends DBModel {
-  static const String tableName = 'invitation';
+  static const tableName = 'invitation';
 
   String stickerId;
   String name;

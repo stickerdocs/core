@@ -2,8 +2,8 @@ import 'package:stickerdocs_core/src/models/db/document.dart';
 import 'package:stickerdocs_core/src/models/db/db_model.dart';
 
 class FileDocument extends Document implements DBModel {
-  static const String tableName = 'file_document';
-  static const String fileIdKey = 'file_id';
+  static const tableName = 'file_document';
+  static const fileIdKey = 'file_id';
 
   String fileId;
 
