@@ -633,7 +633,7 @@ class CryptoService {
     // e.g. GET/account
     messageToSign.add(stringToUint8List(url));
 
-    // e.g. {'client-id':'8a530d02-babf-47c4-8b20-93fc993ac6c6','user-agent':'SD-App macOS/1','user-id':'783f9540-f8bf-4669-9819-53f3982a01f0'}
+    // e.g. {'Client-Id':'8a530d02-babf-47c4-8b20-93fc993ac6c6','User-Agent':'SD-App macOS/1','User-Id':'783f9540-f8bf-4669-9819-53f3982a01f0'}
     messageToSign.add(stringToUint8List(headers));
 
     // Also sign the body if there is one
@@ -641,7 +641,7 @@ class CryptoService {
       messageToSign.add(stringToUint8List(body));
     }
 
-    // printIfDebug('Signed data: ${base64Encode(messageToSign.toBytes())}');
+    // logger.i('Signed data: ${base64Encode(messageToSign.toBytes())}');
 
     // 64 bytes
     final signature =
