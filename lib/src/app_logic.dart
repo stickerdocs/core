@@ -241,6 +241,7 @@ class AppLogic {
     await crypto.decryptRegisterVerifyResponseAndPersist(encryptedResponse);
 
     await config.setUserId(_ephemeralUserId);
+    await config.setUserEmail(_ephemeralEmail);
 
     // Clear temporary variables
     _ephemeralUserId = null;
@@ -248,7 +249,7 @@ class AppLogic {
 
     await updateAccountDetails();
 
-    sync(); // Don't await
+    sync(retrieveAccountDetails:false); // Don't await
 
     return AppLogicResult.ok;
   }
@@ -901,7 +902,7 @@ class AppLogic {
     appState.accountDetails.value = accountDetailsResponse?.toAccountDetails();
   }
 
-  Future<AppLogicResult> sync({bool force = false}) async {
+  Future<AppLogicResult> sync({bool force = false, bool retrieveAccountDetails = true}) async {
     if (appState.accountDetails.value == null) {
       return AppLogicResult.notLoggedIn;
     }
@@ -909,8 +910,10 @@ class AppLogic {
     return await syncMutex.protect(() async {
       appState.isSynchronising.value = true;
 
-      // Start by getting the account info
-      await updateAccountDetails();
+      if (retrieveAccountDetails) {
+        // Start by getting the account info
+        await updateAccountDetails();
+      }
 
       // TODO: test if quota permits
       // if (subscriptionActive.value) {
