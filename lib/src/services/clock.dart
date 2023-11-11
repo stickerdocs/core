@@ -13,13 +13,13 @@ class ClockService {
     // We only need the first 8 chars of the client ID
     formattedClientId = (await config.clientId).substring(0, 8);
 
-    _canonicalTime = Hlc.zero(formattedClientId);
+    _canonicalTime = Hlc.now(formattedClientId!);
     return _canonicalTime!;
   }
 
   Future<String> getTime() async {
     // Compute new HLC timestamp
-    _canonicalTime = Hlc.send(await _getCanonicalTime());
+    _canonicalTime = (await _getCanonicalTime()).increment();
     return _canonicalTime.toString();
   }
 

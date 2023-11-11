@@ -1,110 +1,99 @@
-// From https://github.com/cachapa/crdt/blob/master/lib/src/hlc.dart
-
-import 'dart:math';
-
-const _shift = 16;
+// From https://github.com/cachapa/crdt/blob/master/lib/src/hlc.dart, has Apache License
 const _maxCounter = 0xFFFF;
-const _maxDrift = 60000; // 1 minute in ms
+const _maxDrift = Duration(minutes: 1);
 
 /// A Hybrid Logical Clock implementation.
 /// This class trades time precision for a guaranteed monotonically increasing
 /// clock in distributed systems.
 /// Inspiration: https://cse.buffalo.edu/tech-reports/2014-04.pdf
-class Hlc<T> implements Comparable<Hlc> {
-  final int millis;
+class Hlc implements Comparable<Hlc> {
+  final DateTime dateTime;
   final int counter;
-  final T nodeId;
+  final String nodeId;
 
-  int get logicalTime => (millis << _shift) + counter;
+  Hlc(DateTime dateTime, this.counter, this.nodeId)
+      : dateTime = dateTime.toUtc(),
+        assert(counter <= _maxCounter);
 
-  Hlc(int millis, this.counter, this.nodeId)
-      : assert(counter <= _maxCounter),
-        assert(nodeId is Comparable),
-        assert(nodeId != null),
-        // Detect microseconds and convert to millis
-        millis = millis < 0x0001000000000000 ? millis : millis ~/ 1000;
+  /// Instantiates an Hlc at the beginning of time and space: January 1, 1970.
+  Hlc.zero(String nodeId)
+      : this(DateTime.fromMillisecondsSinceEpoch(0, isUtc: true), 0, nodeId);
 
-  Hlc.zero(T nodeId) : this(0, 0, nodeId);
+  /// Instantiates an Hlc at [dateTime] with logical counter zero.
+  Hlc.fromDate(DateTime dateTime, String nodeId) : this(dateTime, 0, nodeId);
 
-  Hlc.fromDate(DateTime dateTime, T nodeId)
-      : this(dateTime.millisecondsSinceEpoch, 0, nodeId);
+  /// Instantiates an Hlc using the wall clock.
+  Hlc.now(String nodeId) : this.fromDate(DateTime.now(), nodeId);
 
-  Hlc.now(T nodeId) : this.fromDate(DateTime.now(), nodeId);
-
-  Hlc.fromLogicalTime(logicalTime, T nodeId)
-      : this(logicalTime >> _shift, logicalTime & _maxCounter, nodeId);
-
-  factory Hlc.parse(String timestamp, [T Function(String value)? idDecoder]) {
+  /// Parse an HLC string in the format `ISO8601 date-counter-node id`.
+  factory Hlc.parse(String timestamp) {
     final counterDash = timestamp.indexOf('-', timestamp.lastIndexOf(':'));
     final nodeIdDash = timestamp.indexOf('-', counterDash + 1);
-    final millis = DateTime.parse(timestamp.substring(0, counterDash))
-        .millisecondsSinceEpoch;
+    final dateTime = DateTime.parse(timestamp.substring(0, counterDash));
     final counter =
         int.parse(timestamp.substring(counterDash + 1, nodeIdDash), radix: 16);
     final nodeId = timestamp.substring(nodeIdDash + 1);
-    return Hlc(
-        millis, counter, idDecoder != null ? idDecoder(nodeId) : nodeId as T);
+    return Hlc(dateTime, counter, nodeId);
   }
 
-  Hlc apply({int? millis, int? counter, T? nodeId}) => Hlc(
-      millis ?? this.millis, counter ?? this.counter, nodeId ?? this.nodeId);
+  /// Create a copy of this object applying the optional properties.
+  Hlc apply({DateTime? dateTime, int? counter, String? nodeId}) => Hlc(
+      dateTime ?? this.dateTime,
+      counter ?? this.counter,
+      nodeId ?? this.nodeId);
 
-  /// Generates a unique, monotonic timestamp suitable for transmission to
-  /// another system in string format. Local wall time will be used if
-  /// [millis] isn't supplied.
-  factory Hlc.send(Hlc<T> canonical, {int? millis}) {
+  /// Increments the current timestamp for transmission to another system.
+  /// The local wall time will be used if [wallTime] isn't supplied.
+  Hlc increment({DateTime? wallTime}) {
     // Retrieve the local wall time if millis is null
-    millis = millis ?? DateTime.now().millisecondsSinceEpoch;
-
-    // Unpack the canonical time and counter
-    final millisOld = canonical.millis;
-    final counterOld = canonical.counter;
+    wallTime = (wallTime ?? DateTime.now()).toUtc();
 
     // Calculate the next time and counter
     // * ensure that the logical time never goes backward
     // * increment the counter if time does not advance
-    final millisNew = max(millisOld, millis);
-    final counterNew = millisOld == millisNew ? counterOld + 1 : 0;
+    final dateTimeNew = wallTime.isAfter(dateTime) ? wallTime : dateTime;
+    final counterNew = dateTimeNew == dateTime ? counter + 1 : 0;
 
     // Check the result for drift and counter overflow
-    if (millisNew - millis > _maxDrift) {
-      throw ClockDriftException(millisNew, millis);
+    if (dateTimeNew.difference(wallTime) > _maxDrift) {
+      throw ClockDriftException(dateTimeNew, wallTime);
     }
     if (counterNew > _maxCounter) {
       throw OverflowException(counterNew);
     }
 
-    return Hlc(millisNew, counterNew, canonical.nodeId);
+    return Hlc(dateTimeNew, counterNew, nodeId);
   }
 
   /// Compares and validates a timestamp from a remote system with the local
-  /// canonical timestamp to preserve monotonicity.
-  /// Returns an updated canonical timestamp instance.
-  /// Local wall time will be used if [millis] isn't supplied.
-  factory Hlc.recv(Hlc<T> canonical, Hlc<T> remote, {int? millis}) {
+  /// timestamp to preserve monotonicity.
+  /// Local wall time will be used if [wallTime] isn't supplied.
+  Hlc merge(Hlc remote, {DateTime? wallTime}) {
     // Retrieve the local wall time if millis is null
-    millis = millis ?? DateTime.now().millisecondsSinceEpoch;
+    wallTime = (wallTime ?? DateTime.now()).toUtc();
 
-    // No need to do any more work if the remote logical time is lower
-    if (canonical.logicalTime >= remote.logicalTime) return canonical;
+    // No need to do any more work if our date + counter is same or higher
+    if (remote.dateTime.isBefore(dateTime) ||
+        (remote.dateTime.isAtSameMomentAs(dateTime) &&
+            remote.counter <= counter)) return this;
 
     // Assert the node id
-    if (canonical.nodeId == remote.nodeId) {
-      throw DuplicateNodeException(canonical.nodeId.toString());
+    if (nodeId == remote.nodeId) {
+      throw DuplicateNodeException(nodeId);
     }
     // Assert the remote clock drift
-    if (remote.millis - millis > _maxDrift) {
-      throw ClockDriftException(remote.millis, millis);
+    if (remote.dateTime.difference(wallTime) > _maxDrift) {
+      throw ClockDriftException(remote.dateTime, wallTime);
     }
 
-    return Hlc<T>.fromLogicalTime(remote.logicalTime, canonical.nodeId);
+    return remote.apply(nodeId: nodeId);
   }
 
+  /// Convenience method for easy json encoding.
   String toJson() => toString();
 
   @override
-  String toString() =>
-      '${DateTime.fromMillisecondsSinceEpoch(millis, isUtc: true).toIso8601String()}'
+  String toString() => '${dateTime.toIso8601String()}'
       '-${counter.toRadixString(16).toUpperCase().padLeft(4, '0')}'
       '-$nodeId';
 
@@ -112,28 +101,29 @@ class Hlc<T> implements Comparable<Hlc> {
   int get hashCode => toString().hashCode;
 
   @override
-  bool operator ==(other) => other is Hlc<T> && compareTo(other) == 0;
+  bool operator ==(other) => other is Hlc && compareTo(other) == 0;
 
-  bool operator <(other) => other is Hlc<T> && compareTo(other) < 0;
+  bool operator <(other) => other is Hlc && compareTo(other) < 0;
 
   bool operator <=(other) => this < other || this == other;
 
-  bool operator >(other) => other is Hlc<T> && compareTo(other) > 0;
+  bool operator >(other) => other is Hlc && compareTo(other) > 0;
 
   bool operator >=(other) => this > other || this == other;
 
   @override
-  int compareTo(Hlc other) {
-    final time = logicalTime.compareTo(other.logicalTime);
-    return time != 0 ? time : (nodeId as Comparable).compareTo(other.nodeId);
-  }
+  int compareTo(Hlc other) => dateTime.isAtSameMomentAs(other.dateTime)
+      ? counter == other.counter
+          ? nodeId.compareTo(other.nodeId)
+          : counter - other.counter
+      : dateTime.compareTo(other.dateTime);
 }
 
 class ClockDriftException implements Exception {
-  final int drift;
+  final Duration drift;
 
-  ClockDriftException(int millisTs, int millisWall)
-      : drift = millisTs - millisWall;
+  ClockDriftException(DateTime dateTime, DateTime wallTime)
+      : drift = dateTime.difference(wallTime);
 
   @override
   String toString() => 'Clock drift of $drift ms exceeds maximum ($_maxDrift)';
@@ -155,4 +145,8 @@ class DuplicateNodeException implements Exception {
 
   @override
   String toString() => 'Duplicate node: $nodeId';
+}
+
+extension StringHlcX on String {
+  Hlc get toHlc => Hlc.parse(this);
 }
