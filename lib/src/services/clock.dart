@@ -1,4 +1,4 @@
-import 'package:stickerdocs_core/src/hlc.dart';
+import 'package:crdt/crdt.dart';
 import 'package:stickerdocs_core/src/main.dart';
 
 class ClockService {
