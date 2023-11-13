@@ -6,8 +6,9 @@ import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:uuid/data.dart';
+import 'package:uuid/rng.dart';
 import 'package:uuid/uuid.dart';
-import 'package:uuid/uuid_util.dart';
 
 final isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 final isMobile = !isDesktop;
@@ -38,6 +39,7 @@ String get platformName {
 
 const _base64Codec = Base64Codec.urlSafe();
 Uuid? _uuid;
+V4Options? _uuidConfig;
 
 late String baseDataPath;
 late Logger logger;
@@ -134,8 +136,10 @@ Uint8List base64ToUint8List(String input) {
 }
 
 String newUuid() {
-  _uuid ??= const Uuid(options: {'grng': UuidUtil.cryptoRNG});
-  return _uuid!.v4();
+  _uuid ??= const Uuid();
+  _uuidConfig ??= V4Options(null, CryptoRNG());
+ 
+  return _uuid!.v4(config: _uuidConfig);
 }
 
 DateTime isoDateNow() {
