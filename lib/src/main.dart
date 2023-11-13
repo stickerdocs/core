@@ -27,6 +27,7 @@ class CoreConfig {
   final String appVersion;
   final AppState appState;
   final Uint8List stickerDocsPublicKey;
+  final Uint8List reportHarmPublicKey;
 
   CoreConfig({
     required this.apiBaseUrl,
@@ -34,6 +35,7 @@ class CoreConfig {
     required this.appVersion,
     required this.appState,
     required this.stickerDocsPublicKey,
+    required this.reportHarmPublicKey,
   });
 }
 

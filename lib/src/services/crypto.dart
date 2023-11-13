@@ -35,6 +35,7 @@ class SaltAndKey {
 
 class CryptoService {
   Uint8List stickerDocsPublicKey;
+  Uint8List reportHarmPublicKey;
   final CryptoEngine _engine = GetIt.I.get<CryptoEngine>();
   String? _ephemeralPassword;
   KeyPair? _ephemeralAccountKeyPairValue;
@@ -44,7 +45,7 @@ class CryptoService {
 
   SecureKey? _configKeyInstance;
 
-  CryptoService(this.stickerDocsPublicKey);
+  CryptoService(this.stickerDocsPublicKey, this.reportHarmPublicKey);
 
   Future<SecureKey> get _configKey async {
     if (_configKeyInstance == null) {
@@ -317,6 +318,11 @@ class CryptoService {
     final dataKeyPair = await _dataKeyPair;
 
     return _boxDecrypt(message, theirPublicKey, dataKeyPair.secretKey);
+  }
+
+  Future<Uint8List?> encryptForReportingHarm(Uint8List message) async {
+    final dataKeyPair = await _dataKeyPair;
+    return _boxEncrypt(message, reportHarmPublicKey, dataKeyPair.secretKey);
   }
 
   // If we change our email we need to update the password too
