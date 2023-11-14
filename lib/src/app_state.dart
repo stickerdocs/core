@@ -15,12 +15,4 @@ class AppState {
 
   /// True if the app is synchronising
   final isSynchronising = ValueNotifier<bool>(false);
-
-  AppState() {
-    // @eject
-    // When the email is updated, also update whether we are logged in or not
-    // accountDetails.addListener(() {
-    //   loggedIn.value = !accountDetails.isNull;
-    // });
-  }
 }
