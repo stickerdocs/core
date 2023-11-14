@@ -249,7 +249,7 @@ class AppLogic {
 
     await updateAccountDetails();
 
-    sync(retrieveAccountDetails:false); // Don't await
+    sync(retrieveAccountDetails: false); // Don't await
 
     return AppLogicResult.ok;
   }
@@ -375,13 +375,42 @@ class AppLogic {
   }
 
   Future<bool> exportData(String pathToExportTo) async {
-    final directory = io.Directory(pathToExportTo);
+    final dbFile = io.File(config.dbPath);
 
-    if (await directory.exists()) {}
+    // Format the db filename e.g. db_2023-11-14T22-16-40
+    var dbFileName = 'db_${isoDateToString(isoDateNow())}';
+    dbFileName = dbFileName.replaceAll(':', '-').split('.')[0];
 
-    // TODO: implement this
+    await dbFile.copy(join(pathToExportTo, dbFileName));
 
-    return false;
+    final fileIds = await _db.getAllFileIds();
+
+    for (final fileId in fileIds) {
+      // Create the destination directory if required
+      await io.Directory(join(pathToExportTo, fileId)).create();
+
+      final File file = (await _db.getFileById(fileId))!;
+
+      final destinationFilePath =
+          join(pathToExportTo, fileId, file.formatName());
+
+      if (await _shouldFileBeExported(destinationFilePath, file.size!)) {
+        await file.getFile().copy(destinationFilePath);
+      }
+    }
+
+    return true;
+  }
+
+  Future<bool> _shouldFileBeExported(
+      String destinationFilePath, int fileSize) async {
+    final destinationFile = io.File(destinationFilePath);
+
+    if (await destinationFile.exists()) {
+      return await destinationFile.length() != fileSize;
+    }
+
+    return true;
   }
 
   Future<bool> deleteAccount() async {
@@ -902,7 +931,8 @@ class AppLogic {
     appState.accountDetails.value = accountDetailsResponse?.toAccountDetails();
   }
 
-  Future<AppLogicResult> sync({bool force = false, bool retrieveAccountDetails = true}) async {
+  Future<AppLogicResult> sync(
+      {bool force = false, bool retrieveAccountDetails = true}) async {
     if (appState.accountDetails.value == null) {
       return AppLogicResult.notLoggedIn;
     }
@@ -1092,7 +1122,7 @@ class AppLogic {
         sha256: 'todo',
         md5: 'todo',
         sharedFileEncryptedPassword: 'todo');
-        
+
     if (!await _api.reportHarmfulContent(harmfulContent)) {
       return false;
     }
