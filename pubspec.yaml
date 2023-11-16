@@ -24,7 +24,6 @@ dependencies:
   mime: ^1.0.4
   mutex: ^3.0.1
   path: ^1.8.3
-  path_provider: ^2.1.0
   sodium: ^2.1.1
   sodium_libs: ^2.1.1+1
   sqflite: ^2.3.0

@@ -13,7 +13,6 @@ import 'package:stickerdocs_core/src/services/sync.dart';
 import 'package:stickerdocs_core/src/services/file.dart';
 import 'package:stickerdocs_core/src/app_state.dart';
 import 'package:stickerdocs_core/src/app_logic.dart';
-import 'package:stickerdocs_core/src/utils.dart';
 
 // Expose global services
 ConfigService get config => GetIt.I.get<ConfigService>();
@@ -22,6 +21,7 @@ APIService get api => GetIt.I.get<APIService>();
 AppLogic get logic => GetIt.I.get<AppLogic>();
 
 class CoreConfig {
+  final String dataPath;
   final String apiBaseUrl;
   final String appName;
   final String appVersion;
@@ -30,6 +30,7 @@ class CoreConfig {
   final Uint8List reportHarmPublicKey;
 
   CoreConfig({
+    required this.dataPath,
     required this.apiBaseUrl,
     required this.appName,
     required this.appVersion,
@@ -40,13 +41,8 @@ class CoreConfig {
 }
 
 Future<void> initCore(CoreConfig config) async {
-  await populateBaseDataPath();
-
   // We probably want to make use of the config during the lifetime of the app
-  await initConfig();
-
-  // Set up logging
-  attachLogger();
+  await loadProfile(config.dataPath);
 
   // It is most likely we will use crypto for something during the lifetime of the app
   await initCryptoEngine();

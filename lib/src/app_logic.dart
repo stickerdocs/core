@@ -378,7 +378,7 @@ class AppLogic {
     final dbFile = io.File(config.dbPath);
 
     // Format the db filename e.g. db_2023-11-14T22-16-40
-    var dbFileName = 'db_${isoDateToString(isoDateNow())}';
+    var dbFileName = 'db_${isoDateToStringNow()}';
     dbFileName = dbFileName.replaceAll(':', '-').split('.')[0];
 
     await dbFile.copy(join(pathToExportTo, dbFileName));
@@ -1127,5 +1127,9 @@ class AppLogic {
       return false;
     }
     return true;
+  }
+
+  Future<bool> submitCrashReport(String report) async {
+    return api.submitCrashReport(report);
   }
 }

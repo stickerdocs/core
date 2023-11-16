@@ -9,15 +9,14 @@ import 'package:stickerdocs_core/src/services/crypto.dart';
 import 'package:stickerdocs_core/src/services/db.dart';
 import 'package:stickerdocs_core/src/utils.dart';
 
+late String _baseDataPath;
 late String _profileName;
 late String _dataPath;
 
-Future<void> initConfig() async {
-  await loadProfile();
-}
+Future<void> loadProfile(String baseDataPath) async {
+  _baseDataPath = baseDataPath;
 
-Future<void> loadProfile() async {
-  var profileFile = File(join(baseDataPath, 'profile'));
+  var profileFile = File(join(_baseDataPath, 'profile'));
 
   if (await profileFile.exists()) {
     _profileName = await profileFile.readAsString();
@@ -27,10 +26,10 @@ Future<void> loadProfile() async {
   }
 
   // Create the directory if required
-  await Directory(join(baseDataPath, _profileName, 'data'))
+  await Directory(join(_baseDataPath, _profileName, 'data'))
       .create(recursive: true);
 
-  _dataPath = join(baseDataPath, _profileName);
+  _dataPath = join(_baseDataPath, _profileName);
 
   configureLogging(_dataPath);
   logger.i('Data path: $_dataPath');
@@ -50,7 +49,7 @@ Future<void> setProfile(ConfigService config, DBService db, String? email,
 
   _profileName = newProfileName;
 
-  final profileFile = File(join(baseDataPath, 'profile'));
+  final profileFile = File(join(_baseDataPath, 'profile'));
   await profileFile.writeAsString(_profileName);
 
   await db.close();
@@ -58,11 +57,11 @@ Future<void> setProfile(ConfigService config, DBService db, String? email,
   // Were we not previously logged in and we just registered (i.e. this is a new profile)?
   if (lastProfileName == null && isRegistration) {
     // Rename the profile path to this profile name
-    await Directory(join(baseDataPath, 'new'))
-        .rename(join(baseDataPath, _profileName));
+    await Directory(join(_baseDataPath, 'new'))
+        .rename(join(_baseDataPath, _profileName));
   }
 
-  await loadProfile();
+  await loadProfile(_baseDataPath);
   config.reRoot();
 
   await config.setLastProfile(email == null ? null : newProfileName);

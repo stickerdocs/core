@@ -255,6 +255,13 @@ class APIService {
     return response.statusCode == HttpStatus.ok;
   }
 
+  Future<bool> submitCrashReport(String report) async {
+    var body = {'report': report};
+
+    final response = await sendPost('support/report-crash', body: body);
+    return response.statusCode == HttpStatus.ok;
+  }
+
   Future<List<String>> putFile(FilePutRequest request) async {
     var response = await sendPut('file/${request.fileId}', body: request);
 

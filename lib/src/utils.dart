@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:uuid/data.dart';
 import 'package:uuid/rng.dart';
 import 'package:uuid/uuid.dart';
@@ -41,37 +40,11 @@ const _base64Codec = Base64Codec.urlSafe();
 Uuid? _uuid;
 V4Options? _uuidConfig;
 
-late String baseDataPath;
 late Logger logger;
 bool _loggerInitialised = false;
 
 const String defaultFilename = 'Untitled';
 
-Future<void> populateBaseDataPath() async {
-  if (Platform.isWindows) {
-    // Dev support directory =
-    // C:\Users\User\AppData\Roaming\StickerDocs Limited\StickerDocs\dev
-    // Release Support directory =
-    // C:\Users\User\AppData\Local\Packages\StickerDocsLimited.StickerDocs_ns5jd9c8jtewy\LocalCache\Roaming\StickerDocs Limited\StickerDocs\data
-    // But it is advertised/virtualised to the app as 'C:\Users\User\AppData\Roaming\StickerDocs Limited\StickerDocs'
-    // See also: https: //blogs.windows.com/windowsdeveloper/2016/05/10/getting-started-storing-app-data-locally/
-    baseDataPath = (await getApplicationSupportDirectory()).path;
-  } else {
-    baseDataPath = (await getApplicationDocumentsDirectory()).path;
-
-    if (Platform.isLinux) {
-      baseDataPath = join(baseDataPath, 'StickerDocs');
-    }
-  }
-
-  if (kDebugMode) {
-    baseDataPath = join(baseDataPath, 'dev');
-  }
-
-  // Create the directory if required
-  // The base directory may not exist, e.g. if in dev mode
-  await Directory(baseDataPath).create(recursive: true);
-}
 
 void configureLogging(String dataPath) {
   if (_loggerInitialised) {
@@ -95,17 +68,6 @@ void configureLogging(String dataPath) {
   _loggerInitialised = true;
 }
 
-void attachLogger() {
-  FlutterError.onError = (details) {
-    logger.e(details.summary,
-        error: details.exception, stackTrace: details.stack);
-  };
-
-  PlatformDispatcher.instance.onError = (error, stackTrace) {
-    logger.e('PlatformDispatcher', error: error, stackTrace: stackTrace);
-    return false;
-  };
-}
 
 Uint8List appendToList(List<int> list1, List<int> list2) {
   var result = BytesBuilder();
@@ -138,7 +100,7 @@ Uint8List base64ToUint8List(String input) {
 String newUuid() {
   _uuid ??= const Uuid();
   _uuidConfig ??= V4Options(null, CryptoRNG());
- 
+
   return _uuid!.v4(config: _uuidConfig);
 }
 
@@ -148,6 +110,10 @@ DateTime isoDateNow() {
 
 String isoDateToString(DateTime date) {
   return date.toIso8601String().replaceAll('Z', '');
+}
+
+String isoDateToStringNow() {
+  return isoDateNow().toIso8601String().replaceAll('Z', '');
 }
 
 DateTime? fromIsoDateString(String? date) {
