@@ -15,4 +15,4 @@ export 'package:stickerdocs_core/src/utils.dart'
         platformName,
         isoDateToStringNow;
 
-export 'package:stickerdocs_core/src/validation.dart' show validateUuid;
+export 'package:stickerdocs_core/src/validation.dart' show isUuidValid;
