@@ -183,14 +183,15 @@ class AppLogic {
     String name,
     String email,
     String password,
+    String? token,
   ) async {
     // do we really want to make this lowercase?
     name = name.toLowerCase().trim();
     email = email.toLowerCase().trim();
     _ephemeralEmail = email;
 
-    final request =
-        await crypto.generateRegistrationData(name, email, password.trim());
+    final request = await crypto.generateRegistrationData(
+        name, email, password.trim(), token);
 
     if (request == null) {
       return AppLogicResult.cryptoError;

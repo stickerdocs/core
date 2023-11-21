@@ -335,7 +335,7 @@ class CryptoService {
   }
 
   Future<RegisterRequest?> generateRegistrationData(
-      String name, String email, String password) async {
+      String name, String email, String password, String? token) async {
     // 72 bytes
     final authKey = _generateEncryptedAuthKey(email, password);
 
@@ -378,7 +378,8 @@ class CryptoService {
         encryptedDataPrivateKey: encryptedDataPrivateKey,
         signingPublicKey: signingKeyPair.publicKey,
         encryptedSigningPrivateKey: encryptedSigningPrivateKey,
-        keySalt: saltAndKey.salt);
+        keySalt: saltAndKey.salt,
+        token: token);
   }
 
   Future<bool> decryptRegisterVerifyResponseAndPersist(
