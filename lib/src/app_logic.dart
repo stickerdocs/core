@@ -190,6 +190,10 @@ class AppLogic {
     email = email.toLowerCase().trim();
     _ephemeralEmail = email;
 
+    if (token != null) {
+      token = token.toLowerCase().trim();
+    }
+
     final request = await crypto.generateRegistrationData(
         name, email, password.trim(), token);
 
