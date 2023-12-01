@@ -8,8 +8,9 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:stickerdocs_core/src/app_logic.dart';
+import 'package:stickerdocs_core/src/app_state.dart';
 import 'package:stickerdocs_core/src/models/api/account_details_response.dart';
-import 'package:stickerdocs_core/src/models/api/new_version.dart';
+import 'package:stickerdocs_core/src/models/upgrade_available.dart';
 import 'package:stickerdocs_core/src/models/file_chunk.dart';
 import 'package:stickerdocs_core/src/models/api/file_get_response.dart';
 import 'package:stickerdocs_core/src/models/api/file_put_request.dart';
@@ -40,21 +41,6 @@ class APIService {
   static const _signatureHeader = 'Signature';
 
   APIService(this.baseUrl, this.appName, this.appVersion);
-
-  Future<AppVersion?> checkVersion(String packaging) async {
-    var response = await _client.get(
-        Uri.parse('https://stickerdocs.com/download/latest_versions.json'));
-
-    if (response.statusCode == HttpStatus.ok) {
-      final appVersion = AppVersion.deserialize(response.body, packaging);
-
-      if (appVersion.isNewer(this.appVersion)) {
-        return appVersion;
-      }
-    }
-
-    return null;
-  }
 
   Future<http.Response> sendGet(String path,
       {Map<String, String>? additionalHeaders}) async {
@@ -150,8 +136,21 @@ class APIService {
       logger.t('<< ${json.encode(response.body)}');
     }
 
+    if (response.headers.containsKey('x-latest-version-number')) {
+      final latestVersion = response.headers['x-latest-version-number']!;
+      final releaseNotes = response.headers['x-latest-version-release-notes'];
+      final isCurrentVersionSupported = response.statusCode != HttpStatus.upgradeRequired;
+
+      GetIt.I<AppLogic>().upgradeAvailable(latestVersion, releaseNotes, isCurrentVersionSupported);
+
+      if (!isCurrentVersionSupported) {
+        return response;
+      }
+    }
+
     if (response.statusCode == HttpStatus.unauthorized) {
       await GetIt.I<AppLogic>().logout(shouldNotifyServer: false);
+      return response;
     }
 
     return response;

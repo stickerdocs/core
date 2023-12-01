@@ -41,6 +41,7 @@ void main() {
   late CryptoEngine mockEngine;
 
   Uint8List stickerDocsPublicKey = Uint8List.fromList([190, 23]);
+  Uint8List reportHarmPublicKey = Uint8List.fromList([104, 144]);
   Uint8List publicKey = Uint8List.fromList([228, 191]);
   SecureKey secureKey = MockSecureKey();
   Uint8List secureKeyBytes = Uint8List.fromList([78, 115]);
@@ -51,8 +52,8 @@ void main() {
   setUp(() async {
     GetIt.I.registerSingleton<ConfigService>(FakeConfigService());
     GetIt.I.registerSingleton<CryptoEngine>(MockCryptoEngine());
-    GetIt.I
-        .registerSingleton<CryptoService>(CryptoService(stickerDocsPublicKey));
+    GetIt.I.registerSingleton<CryptoService>(
+        CryptoService(stickerDocsPublicKey, reportHarmPublicKey));
 
     service = GetIt.I.get<CryptoService>();
     mockEngine = GetIt.I.get<CryptoEngine>();

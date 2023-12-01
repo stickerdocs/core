@@ -11,7 +11,7 @@ import 'package:stickerdocs_core/models.dart';
 import 'package:stickerdocs_core/src/app_state.dart';
 import 'package:stickerdocs_core/src/importers/evernote.dart';
 import 'package:stickerdocs_core/src/models/api/account_details_response.dart';
-import 'package:stickerdocs_core/src/models/api/new_version.dart';
+import 'package:stickerdocs_core/src/models/upgrade_available.dart';
 import 'package:stickerdocs_core/src/models/api/report_harmful_content.dart';
 import 'package:stickerdocs_core/src/models/db/block.dart';
 import 'package:stickerdocs_core/src/models/invitation.dart';
@@ -147,10 +147,6 @@ class AppLogic {
     await saveSticker(sticker);
   }
 
-  Future<AppVersion?> checkForAppUpdates(String packaging) async {
-    return await api.checkVersion(packaging);
-  }
-
   Future<bool> sendSupportEnquiry(String? email, String message) async {
     return await api.sendSupportEnquiry(email, message);
   }
@@ -257,6 +253,14 @@ class AppLogic {
     sync(retrieveAccountDetails: false); // Don't await
 
     return AppLogicResult.ok;
+  }
+
+  upgradeAvailable(String latestVersion, String? releaseNotes,
+      bool isCurrentVersionSupported) {
+    appState.upgradeAvailable.value = UpgradeAvailable(
+        version: latestVersion,
+        releaseNotes: releaseNotes,
+        isCurrentVersionSupported: isCurrentVersionSupported);
   }
 
   Future<AppLogicResult> logout({bool shouldNotifyServer = true}) async {

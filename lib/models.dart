@@ -14,3 +14,4 @@ export 'package:stickerdocs_core/src/models/db/shared_sticker.dart' show SharedS
 export 'package:stickerdocs_core/src/models/invitation_to_accept.dart' show InvitationToAccept;
 export 'package:stickerdocs_core/src/models/account_details.dart' show AccountDetails;
 export 'package:stickerdocs_core/src/models/invitation_info.dart' show InvitationInfo;
+export 'package:stickerdocs_core/src/models/upgrade_available.dart' show UpgradeAvailable;
