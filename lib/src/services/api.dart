@@ -8,9 +8,7 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:stickerdocs_core/src/app_logic.dart';
-import 'package:stickerdocs_core/src/app_state.dart';
 import 'package:stickerdocs_core/src/models/api/account_details_response.dart';
-import 'package:stickerdocs_core/src/models/upgrade_available.dart';
 import 'package:stickerdocs_core/src/models/file_chunk.dart';
 import 'package:stickerdocs_core/src/models/api/file_get_response.dart';
 import 'package:stickerdocs_core/src/models/api/file_put_request.dart';
@@ -31,6 +29,7 @@ class APIService {
   final String baseUrl;
   final String appName;
   final String appVersion;
+  bool isCurrentVersionSupported = true;
   final http.Client _client = http.Client();
 
   static const _userAgentHeader = 'User-Agent';
@@ -44,6 +43,10 @@ class APIService {
 
   Future<http.Response> sendGet(String path,
       {Map<String, String>? additionalHeaders}) async {
+    if (!isCurrentVersionSupported) {
+      return http.Response('', HttpStatus.upgradeRequired);
+    }
+
     String url = '$baseUrl$path';
     Map<String, String> headers =
         await buildHeaders('GET/$path', additionalHeaders, null);
@@ -54,6 +57,10 @@ class APIService {
 
   Future<http.Response> sendPost(String path,
       {Object? body, Map<String, String>? additionalHeaders}) async {
+    if (!isCurrentVersionSupported) {
+      return http.Response('', HttpStatus.upgradeRequired);
+    }
+
     String url = '$baseUrl$path';
     String? formattedBody = body == null ? null : json.encode(body);
 
@@ -67,6 +74,10 @@ class APIService {
 
   Future<http.Response> sendPut(String path,
       {Object? body, Map<String, String>? additionalHeaders}) async {
+    if (!isCurrentVersionSupported) {
+      return http.Response('', HttpStatus.upgradeRequired);
+    }
+
     String url = '$baseUrl$path';
     String? formattedBody = body == null ? null : json.encode(body);
 
@@ -79,6 +90,10 @@ class APIService {
   }
 
   Future<http.Response> sendDelete(String path) async {
+    if (!isCurrentVersionSupported) {
+      return http.Response('', HttpStatus.upgradeRequired);
+    }
+
     String url = '$baseUrl$path';
     Map<String, String> headers =
         await buildHeaders('DELETE/$path', null, null);
@@ -136,28 +151,35 @@ class APIService {
       logger.t('<< ${json.encode(response.body)}');
     }
 
-    if (response.headers.containsKey('x-latest-version-number')) {
-      final latestVersion = response.headers['x-latest-version-number']!;
+    final latestVersion = response.headers['x-latest-version-number'];
+    if (latestVersion != null) {
       final releaseNotes = response.headers['x-latest-version-release-notes'];
-      final isCurrentVersionSupported = response.statusCode != HttpStatus.upgradeRequired;
+      isCurrentVersionSupported =
+          response.statusCode != HttpStatus.upgradeRequired;
 
-      GetIt.I<AppLogic>().upgradeAvailable(latestVersion, releaseNotes, isCurrentVersionSupported);
+      GetIt.I<AppLogic>().upgradeAvailable(
+          latestVersion, releaseNotes, isCurrentVersionSupported);
 
       if (!isCurrentVersionSupported) {
         return response;
       }
     }
 
-    if (response.statusCode == HttpStatus.unauthorized) {
-      await GetIt.I<AppLogic>().logout(shouldNotifyServer: false);
-      return response;
+    final serviceMessage = response.headers['x-service-message'];
+    if (serviceMessage != null) {
+      GetIt.I<AppLogic>().serviceMessage(serviceMessage);
     }
 
     return response;
   }
 
-  Future<bool> isRegistrationOpen() async {
+  Future<bool?> isRegistrationOpen() async {
     var response = await sendGet('account/register');
+
+    if (response.statusCode != HttpStatus.ok) {
+      return null;
+    }
+
     return response.statusCode == HttpStatus.ok && response.body == 'open';
   }
 

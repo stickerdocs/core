@@ -16,5 +16,6 @@ class AppState {
   /// True if the app is synchronising
   final isSynchronising = ValueNotifier<bool>(false);
 
+  final serviceMessage = ValueNotifier<String?>(null);
   final upgradeAvailable = ValueNotifier<UpgradeAvailable?>(null);
 }

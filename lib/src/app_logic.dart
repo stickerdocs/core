@@ -167,7 +167,7 @@ class AppLogic {
     appState.trustedUsers.value = await _db.getTrustedUsers();
   }
 
-  Future<bool> isRegistrationOpen() async {
+  Future<bool?> isRegistrationOpen() async {
     return await _api.isRegistrationOpen();
   }
 
@@ -253,6 +253,14 @@ class AppLogic {
     sync(retrieveAccountDetails: false); // Don't await
 
     return AppLogicResult.ok;
+  }
+
+  serviceMessage(String message) {
+    // Only if there has not already been a service message in this app-session.
+    // Don't want to bombard the user
+    if (appState.serviceMessage.value != message) {
+      appState.serviceMessage.value = message;
+    }
   }
 
   upgradeAvailable(String latestVersion, String? releaseNotes,
