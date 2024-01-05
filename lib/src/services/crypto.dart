@@ -9,6 +9,7 @@ import 'package:get_it/get_it.dart';
 import 'package:sodium/sodium.dart';
 import 'package:crypto/crypto.dart' as hash;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:stickerdocs_core/src/models/api/change_password_request.dart';
 
 import 'package:stickerdocs_core/src/models/api/invitation_response.dart';
 import 'package:stickerdocs_core/src/models/api/invitation_request.dart';
@@ -81,7 +82,7 @@ class CryptoService {
 
   // We will re-use this ephemeral key for the duration of the app lifecycle.
   // We use this to keep credentials secure in case of HTTPS interception hardware on the network.
-  // The login process stores this public key for the decrypting verification challenge response
+  // The login process stores this public key for decrypting the verification challenge response
   //
   // Public + private key both 32 bytes
   KeyPair get _ephemeralAccountKeyPair {
@@ -432,6 +433,30 @@ class CryptoService {
         authKey: authKey);
   }
 
+  ChangePasswordRequest? generateChangePasswordRequest(
+      String email, String existingPassword, String newPassword) {
+    // 72 bytes
+    final oldAuthKey = _generateEncryptedAuthKey(email, existingPassword);
+
+    if (oldAuthKey == null) {
+      logger.e('Could not generate an auth key');
+      return null;
+    }
+
+    // 72 bytes
+    final newAuthKey = _generateEncryptedAuthKey(email, newPassword);
+
+    if (newAuthKey == null) {
+      logger.e('Could not generate an auth key');
+      return null;
+    }
+
+    return ChangePasswordRequest(
+        authPublicKey: _ephemeralAccountKeyPair.publicKey,
+        oldAuthKey: oldAuthKey,
+        newAuthKey: newAuthKey);
+  }
+
   Uint8List? generateAuthChallengeResponse(String challengeResponse) {
     // 46 bytes
     final encryptedChallengeResponse =
@@ -456,6 +481,7 @@ class CryptoService {
         LoginVerifyResponse.deserialize(uint8ListToString(plainText));
 
     final key = _engine.passwordHash(response.keySalt, _ephemeralPassword!);
+    _ephemeralPassword = null;
 
     await _setDataKeyPair(_decryptKeyPair(
         key, response.encryptedDataPrivateKey, response.dataPublicKey));
@@ -472,8 +498,6 @@ class CryptoService {
         'Signing private key: ${base64Encode(response.requestSigningPrivateKey)}');
 
     await setApiRequestSigningPrivateKey(response.requestSigningPrivateKey);
-
-    _ephemeralPassword = null;
 
     return true;
   }

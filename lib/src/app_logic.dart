@@ -373,11 +373,26 @@ class AppLogic {
 
     await updateAccountDetails();
 
-    // We call this just to clear out the doc table until sync has finished
-    // updateUi();
-
     sync(); // Don't await
     return AppLogicResult.ok;
+  }
+
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    final email = await config.userEmail;
+
+    if (email == null) {
+      logger.e('Email was null when attempting to change password.');
+      return false;
+    }
+
+    final request = crypto.generateChangePasswordRequest(
+        email, oldPassword.trim(), newPassword.trim());
+
+    if (request == null) {
+      return false;
+    }
+
+    return await _api.ChangePassword(request);
   }
 
   Future<bool> subscribe(String token) async {

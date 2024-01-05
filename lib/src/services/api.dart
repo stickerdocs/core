@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:stickerdocs_core/src/app_logic.dart';
 import 'package:stickerdocs_core/src/models/api/account_details_response.dart';
+import 'package:stickerdocs_core/src/models/api/change_password_request.dart';
 import 'package:stickerdocs_core/src/models/file_chunk.dart';
 import 'package:stickerdocs_core/src/models/api/file_get_response.dart';
 import 'package:stickerdocs_core/src/models/api/file_put_request.dart';
@@ -254,6 +255,11 @@ class APIService {
     }
 
     return null;
+  }
+
+  Future<bool> ChangePassword(ChangePasswordRequest request) async {
+    var response = await sendPost('account/change-password', body: request);
+    return response.statusCode == HttpStatus.ok;
   }
 
   Future<bool> subscribe(String token) async {
