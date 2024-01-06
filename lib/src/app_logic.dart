@@ -11,7 +11,6 @@ import 'package:stickerdocs_core/models.dart';
 import 'package:stickerdocs_core/src/app_state.dart';
 import 'package:stickerdocs_core/src/importers/evernote.dart';
 import 'package:stickerdocs_core/src/models/api/account_details_response.dart';
-import 'package:stickerdocs_core/src/models/upgrade_available.dart';
 import 'package:stickerdocs_core/src/models/api/report_harmful_content.dart';
 import 'package:stickerdocs_core/src/models/db/block.dart';
 import 'package:stickerdocs_core/src/models/invitation.dart';
