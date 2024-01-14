@@ -51,8 +51,9 @@ class SyncSharedService {
     Sticker.tableName,
     StickerFileDocument.tableName,
     StickerBlockDocument.tableName,
-    SharedSticker
-        .tableName, // Note we don't share SharedSticker objects, so it is not in the _permittedIncomingSharedEventTypes list
+
+    // Note we do not share SharedSticker objects, so this is not in the _permittedIncomingSharedEventTypes list
+    SharedSticker.tableName,
   };
 
   final _permittedIncomingSharedEventTypes = {
