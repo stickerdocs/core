@@ -24,7 +24,13 @@ import 'package:stickerdocs_core/src/services/crypto.dart';
 import 'package:stickerdocs_core/src/services/db.dart';
 import 'package:stickerdocs_core/src/utils.dart';
 
-const chunkSize = 4000000; // 4MB chunks, change to 1/2MB chunks?
+
+// Each chunk is 4MB, which is 4 * 1024^2 bytes, which is 4,194,304 bytes
+// Max file size is 10GB, which is 10 * 1024^3 bytes, which is 10,737,418,240 bytes
+// Therefore the maximum number of chunks permitted is 2,560 (10 * 1024^3 / 4 * 1024^2)
+// This fits into the permitted storage for DynamoDB items
+const chunkSize = 4194304;
+
 const urlExpirationDuration = Duration(hours: 1);
 
 class FileService {
