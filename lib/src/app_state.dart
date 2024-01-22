@@ -18,4 +18,7 @@ class AppState {
 
   final serviceMessage = ValueNotifier<String?>(null);
   final upgradeAvailable = ValueNotifier<UpgradeAvailable?>(null);
+
+  // TODO: app should notify when this condition occurs, used for adding files
+  final errorMessages = ValueNotifier<List<String>>([]);
 }

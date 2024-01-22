@@ -8,7 +8,11 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:stickerdocs_core/src/app_logic.dart';
+import 'package:stickerdocs_core/src/models/api/challenge_request.dart';
+import 'package:stickerdocs_core/src/utils.dart';
+import 'package:stickerdocs_core/src/main.dart';
 import 'package:stickerdocs_core/src/models/api/account_details_response.dart';
+import 'package:stickerdocs_core/src/models/api/challenge_response.dart';
 import 'package:stickerdocs_core/src/models/api/change_password_request.dart';
 import 'package:stickerdocs_core/src/models/file_chunk.dart';
 import 'package:stickerdocs_core/src/models/api/file_get_response.dart';
@@ -23,8 +27,6 @@ import 'package:stickerdocs_core/src/models/api/encrypted_invitation.dart';
 import 'package:stickerdocs_core/src/models/invitation_info.dart';
 import 'package:stickerdocs_core/src/models/api/invitation_request.dart';
 import 'package:stickerdocs_core/src/models/api/report_harmful_content.dart';
-import 'package:stickerdocs_core/src/utils.dart';
-import 'package:stickerdocs_core/src/main.dart';
 
 class APIService {
   final String baseUrl;
@@ -52,7 +54,7 @@ class APIService {
     Map<String, String> headers =
         await buildHeaders('GET/$path', additionalHeaders, null);
 
-    var response = await _client.get(Uri.parse(url), headers: headers);
+    final response = await _client.get(Uri.parse(url), headers: headers);
     return await processResponse('GET', url, headers, null, response);
   }
 
@@ -68,7 +70,7 @@ class APIService {
     Map<String, String> headers =
         await buildHeaders('POST/$path', additionalHeaders, formattedBody);
 
-    var response = await _client.post(Uri.parse(url),
+    final response = await _client.post(Uri.parse(url),
         body: formattedBody, headers: headers);
     return await processResponse('POST', url, headers, formattedBody, response);
   }
@@ -85,7 +87,7 @@ class APIService {
     Map<String, String> headers =
         await buildHeaders('PUT/$path', null, formattedBody);
 
-    var response = await _client.put(Uri.parse(url),
+    final response = await _client.put(Uri.parse(url),
         body: formattedBody, headers: headers);
     return await processResponse('PUT', url, headers, formattedBody, response);
   }
@@ -99,7 +101,7 @@ class APIService {
     Map<String, String> headers =
         await buildHeaders('DELETE/$path', null, null);
 
-    var response = await _client.delete(Uri.parse(url), headers: headers);
+    final response = await _client.delete(Uri.parse(url), headers: headers);
     return await processResponse('DELETE', url, headers, null, response);
   }
 
@@ -124,7 +126,8 @@ class APIService {
     }
 
     final serializedHeaders = jsonEncode(headers);
-    var signature = await crypto.signApiRequest(path, serializedHeaders, body);
+    final signature =
+        await crypto.signApiRequest(path, serializedHeaders, body);
 
     if (signature != null) {
       headers[_signatureHeader] = signature;
@@ -175,7 +178,7 @@ class APIService {
   }
 
   Future<bool?> isRegistrationOpen() async {
-    var response = await sendGet('account/register');
+    final response = await sendGet('account/register');
 
     if (response.statusCode != HttpStatus.ok) {
       return null;
@@ -185,7 +188,7 @@ class APIService {
   }
 
   Future<bool> joinWaitingList(String email) async {
-    var response = await sendPost('account/register/waiting_list', body: {
+    final response = await sendPost('account/register/waiting_list', body: {
       'email': email,
     });
 
@@ -193,7 +196,7 @@ class APIService {
   }
 
   Future<RegisterResponse?> register(RegisterRequest request) async {
-    var response = await sendPost('account/register', body: request);
+    final response = await sendPost('account/register', body: request);
 
     if (response.statusCode == HttpStatus.ok) {
       return RegisterResponse.deserialize(response.body);
@@ -204,7 +207,7 @@ class APIService {
 
   Future<Uint8List?> registerVerify(
       Uint8List challengeResponse, String userId) async {
-    var response = await sendPost('account/register/verify', body: {
+    final response = await sendPost('account/register/verify', body: {
       'challenge_response': uint8ListToBase64(challengeResponse),
     }, additionalHeaders: {
       _userIdHeader: userId
@@ -218,7 +221,7 @@ class APIService {
   }
 
   Future<AccountDetailsResponse?> getAccountDetails() async {
-    var response = await sendGet('account');
+    final response = await sendGet('account');
 
     if (response.statusCode == HttpStatus.ok) {
       return AccountDetailsResponse.deserialize(response.body);
@@ -228,12 +231,17 @@ class APIService {
   }
 
   Future<bool> logout() async {
-    var response = await sendPost('account/logout');
+    final response = await sendPost('account/logout');
+    return response.statusCode == HttpStatus.ok;
+  }
+
+  Future<bool> logoutOtherSessions() async {
+    final response = await sendPost('account/logout/other-sessions');
     return response.statusCode == HttpStatus.ok;
   }
 
   Future<LoginResponse?> login(LoginRequest request) async {
-    var response = await sendPost('account/login', body: request);
+    final response = await sendPost('account/login', body: request);
 
     if (response.statusCode == HttpStatus.ok) {
       return LoginResponse.deserialize(response.body);
@@ -244,7 +252,7 @@ class APIService {
 
   Future<Uint8List?> loginVerify(
       Uint8List challengeResponse, String userId) async {
-    var response = await sendPost('account/login/verify', body: {
+    final response = await sendPost('account/login/verify', body: {
       'challenge_response': uint8ListToBase64(challengeResponse),
     }, additionalHeaders: {
       _userIdHeader: userId
@@ -257,11 +265,6 @@ class APIService {
     return null;
   }
 
-  Future<bool> ChangePassword(ChangePasswordRequest request) async {
-    var response = await sendPost('account/change-password', body: request);
-    return response.statusCode == HttpStatus.ok;
-  }
-
   Future<bool> subscribe(String token) async {
     final response = await sendPost('account/subscribe', body: {
       'token': token,
@@ -271,26 +274,26 @@ class APIService {
   }
 
   Future<bool> sendSupportEnquiry(String? email, String message) async {
-    var body = {'message': message};
+    final body = {'message': message};
 
     if (email != null && email.isNotEmpty) {
       body['email'] = email;
     }
 
-    var response = await sendPost('support/contact', body: body);
+    final response = await sendPost('support/contact', body: body);
 
     return response.statusCode == HttpStatus.ok;
   }
 
   Future<bool> submitCrashReport(String report) async {
-    var body = {'report': report};
+    final body = {'report': report};
 
     final response = await sendPost('support/report-crash', body: body);
     return response.statusCode == HttpStatus.ok;
   }
 
   Future<List<String>> putFile(FilePutRequest request) async {
-    var response = await sendPut('file/${request.fileId}', body: request);
+    final response = await sendPut('file/${request.fileId}', body: request);
 
     if (response.statusCode == HttpStatus.ok) {
       List<dynamic> decoded = jsonDecode(response.body);
@@ -301,7 +304,7 @@ class APIService {
   }
 
   Future<String?> putFileChunk(FileChunk fileChunk) async {
-    var response =
+    final response =
         await sendPut('file/${fileChunk.fileId}/chunk/${fileChunk.index}');
 
     if (response.statusCode == HttpStatus.ok) {
@@ -312,7 +315,7 @@ class APIService {
   }
 
   Future<AccountDetailsResponse?> fileUploadSuccessful(String fileId) async {
-    var response = await sendPost('file/$fileId');
+    final response = await sendPost('file/$fileId');
 
     if (response.statusCode == HttpStatus.ok) {
       return AccountDetailsResponse.deserialize(response.body);
@@ -328,7 +331,7 @@ class APIService {
       headers[_sourceUserIdHeader] = sourceUserId;
     }
 
-    var response = await sendGet('file/$fileId', additionalHeaders: headers);
+    final response = await sendGet('file/$fileId', additionalHeaders: headers);
 
     if (response.statusCode == HttpStatus.ok) {
       return FileGetResponse.deserialize(response.body, fileId, sourceUserId);
@@ -344,7 +347,7 @@ class APIService {
       headers[_sourceUserIdHeader] = fileChunk.sourceUserId!;
     }
 
-    var response = await sendGet(
+    final response = await sendGet(
         'file/${fileChunk.fileId}/chunk/${fileChunk.index}',
         additionalHeaders: headers);
 
@@ -356,12 +359,12 @@ class APIService {
   }
 
   Future<bool> sendInvitation(InvitationRequest request) async {
-    var response = await sendPost('invite', body: request);
+    final response = await sendPost('invite', body: request);
     return response.statusCode == HttpStatus.ok;
   }
 
   Future<InvitationResponse?> getInvitationStatus(String invitationId) async {
-    var response = await sendGet('invite/$invitationId');
+    final response = await sendGet('invite/$invitationId');
 
     if (response.statusCode == HttpStatus.ok) {
       return InvitationResponse.deserialize(response.body);
@@ -371,17 +374,17 @@ class APIService {
   }
 
   Future<bool> cancelInvitation(String invitationId) async {
-    var response = await sendPost('invite/$invitationId/cancel');
+    final response = await sendPost('invite/$invitationId/cancel');
     return response.statusCode == HttpStatus.ok;
   }
 
   Future<bool> approveInvitation(String invitationId) async {
-    var response = await sendPost('invite/$invitationId/approve');
+    final response = await sendPost('invite/$invitationId/approve');
     return response.statusCode == HttpStatus.ok;
   }
 
   Future<EncryptedInvitation?> getEncryptedInvitation(String token) async {
-    var response = await sendGet('invitation/$token');
+    final response = await sendGet('invitation/$token');
 
     if (response.statusCode == HttpStatus.ok) {
       return EncryptedInvitation.deserialize(response.body);
@@ -392,7 +395,7 @@ class APIService {
 
   Future<InvitationInfo?> getInvitationDetails(
       String token, Uint8List signature) async {
-    var response = await sendPost('invitation/$token',
+    final response = await sendPost('invitation/$token',
         body: {'signature': uint8ListToBase64(signature)});
 
     if (response.statusCode == HttpStatus.ok) {
@@ -403,14 +406,14 @@ class APIService {
   }
 
   Future<bool> acceptInvitation(String token, Uint8List signature) async {
-    var response = await sendPost('invitation/$token/accept',
+    final response = await sendPost('invitation/$token/accept',
         body: {'signature': uint8ListToBase64(signature)});
 
     return response.statusCode == HttpStatus.ok;
   }
 
   Future<bool> rejectInvitation(String token, Uint8List signature) async {
-    var response = await sendPost('invitation/$token/reject',
+    final response = await sendPost('invitation/$token/reject',
         body: {'signature': uint8ListToBase64(signature)});
 
     return response.statusCode == HttpStatus.ok;
@@ -448,14 +451,45 @@ class APIService {
     return response.statusCode == HttpStatus.ok;
   }
 
-  Future<bool> deleteAccount() async {
-    final response = await sendDelete('account');
-    return response.statusCode == HttpStatus.ok;
-  }
-
   Future<bool> reportHarmfulContent(ReportHarmfulContent harmfulContent) async {
     final response =
         await sendPost('support/report-harmful-content', body: harmfulContent);
+    return response.statusCode == HttpStatus.ok;
+  }
+
+  Future<ChallengeResponse?> changePassword(
+      ChangePasswordRequest request) async {
+    final response = await sendPost('account/change-password', body: request);
+
+    if (response.statusCode == HttpStatus.ok) {
+      return ChallengeResponse.deserialize(response.body);
+    }
+
+    return null;
+  }
+
+  Future<bool> changePasswordVerify(ChangePasswordRequest request) async {
+    final response =
+        await sendPost('account/change-password/verify', body: request);
+
+    return response.statusCode == HttpStatus.ok;
+  }
+
+  Future<ChallengeResponse?> deleteAccount(ChallengeRequest request) async {
+    final response = await sendPost('account/delete', body: request);
+
+    if (response.statusCode == HttpStatus.ok) {
+      return ChallengeResponse.deserialize(response.body);
+    }
+
+    return null;
+  }
+
+  Future<bool> deleteAccountVerify(Uint8List challengeResponse) async {
+    final response = await sendPost('account/delete/verify', body: {
+      'challenge_response': uint8ListToBase64(challengeResponse),
+    });
+
     return response.statusCode == HttpStatus.ok;
   }
 }

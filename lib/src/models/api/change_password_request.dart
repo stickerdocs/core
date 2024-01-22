@@ -4,18 +4,15 @@ import 'package:stickerdocs_core/src/utils.dart';
 
 class ChangePasswordRequest {
   final Uint8List authPublicKey;
-  final Uint8List oldAuthKey;
-  final Uint8List newAuthKey;
+  final Uint8List authKey;
+  Uint8List? challengeResponse;
 
-  const ChangePasswordRequest({
-    required this.authPublicKey,
-    required this.oldAuthKey,
-    required this.newAuthKey
-  });
+   ChangePasswordRequest(
+      {required this.authPublicKey, required this.authKey});
 
   Map<String, dynamic> toJson() => {
+    // we reuse this public key for the challenge response for verify
         'auth_public_key': uint8ListToBase64(authPublicKey),
-        'old_auth_key': uint8ListToBase64(oldAuthKey),
-        'new_auth_key': uint8ListToBase64(newAuthKey)
+        'auth_key': uint8ListToBase64(authKey),
       };
 }

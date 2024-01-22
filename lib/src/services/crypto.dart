@@ -9,6 +9,7 @@ import 'package:get_it/get_it.dart';
 import 'package:sodium/sodium.dart';
 import 'package:crypto/crypto.dart' as hash;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:stickerdocs_core/src/models/api/challenge_request.dart';
 import 'package:stickerdocs_core/src/models/api/change_password_request.dart';
 
 import 'package:stickerdocs_core/src/models/api/invitation_response.dart';
@@ -26,7 +27,7 @@ import 'package:stickerdocs_core/src/services/crypto_engine.dart';
 import 'package:stickerdocs_core/src/utils.dart';
 import 'package:stickerdocs_core/src/main.dart';
 
-const int fileChunkSize = 1024;
+const int fileHashChunkSize = 1024;
 
 class SaltAndKey {
   Uint8List salt;
@@ -183,9 +184,9 @@ class CryptoService {
     Uint8List data;
 
     do {
-      data = await fileHandle.read(fileChunkSize);
+      data = await fileHandle.read(fileHashChunkSize);
       input.add(data);
-    } while (data.length == fileChunkSize);
+    } while (data.length == fileHashChunkSize);
 
     input.close();
     await fileHandle.close();
@@ -433,28 +434,52 @@ class CryptoService {
         authKey: authKey);
   }
 
-  ChangePasswordRequest? generateChangePasswordRequest(
-      String email, String existingPassword, String newPassword) {
-    // 72 bytes
-    final oldAuthKey = _generateEncryptedAuthKey(email, existingPassword);
 
-    if (oldAuthKey == null) {
+  ChallengeRequest? generateChallengeRequestData(String email, String password) {
+    _ephemeralPassword = password;
+
+    // 72 bytes
+    final authKey = _generateEncryptedAuthKey(email, password);
+
+    if (authKey == null) {
       logger.e('Could not generate an auth key');
       return null;
     }
 
-    // 72 bytes
-    final newAuthKey = _generateEncryptedAuthKey(email, newPassword);
+    return ChallengeRequest(
+        authPublicKey: _ephemeralAccountKeyPair.publicKey,
+        authKey: authKey);
+  }
 
-    if (newAuthKey == null) {
+  ChangePasswordRequest? generateChangePasswordRequest(
+      String email, String existingPassword) {
+    // 72 bytes
+    final authKey = _generateEncryptedAuthKey(email, existingPassword);
+
+    if (authKey == null) {
+      logger.e('Could not generate an auth key');
+      return null;
+    }
+
+
+    return ChangePasswordRequest(
+        authPublicKey: _ephemeralAccountKeyPair.publicKey,
+        authKey: authKey);
+  }
+
+   ChangePasswordRequest? generateChangePasswordVerifyRequest(
+      String email, String newPassword) {
+     // 72 bytes
+    final authKey = _generateEncryptedAuthKey(email, newPassword);
+
+    if (authKey == null) {
       logger.e('Could not generate an auth key');
       return null;
     }
 
     return ChangePasswordRequest(
         authPublicKey: _ephemeralAccountKeyPair.publicKey,
-        oldAuthKey: oldAuthKey,
-        newAuthKey: newAuthKey);
+        authKey: authKey);
   }
 
   Uint8List? generateAuthChallengeResponse(String challengeResponse) {
@@ -464,7 +489,6 @@ class CryptoService {
 
     if (encryptedChallengeResponse == null) {
       logger.e('Could not generate an auth challenge response');
-      return null;
     }
 
     return encryptedChallengeResponse;

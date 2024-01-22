@@ -31,7 +31,7 @@ enum AppLogicResult {
   dbError,
   cryptoError,
   missedStepError,
-  loginDoesNotRequireChallenge,
+  accountActionDoesNotRequireChallenge,
   ok
 }
 
@@ -208,7 +208,7 @@ class AppLogic {
       final result = await registerVerify(response.challengeResponse!);
 
       if (result == AppLogicResult.ok) {
-        return AppLogicResult.loginDoesNotRequireChallenge;
+        return AppLogicResult.accountActionDoesNotRequireChallenge;
       }
 
       return result;
@@ -308,6 +308,17 @@ class AppLogic {
     return AppLogicResult.ok;
   }
 
+  Future<AppLogicResult> logoutOtherSessions() async {
+    final logoutSuccessful = await _api.logoutOtherSessions();
+
+    if (!logoutSuccessful) {
+      logger.e('Could not expire other sessions');
+      return AppLogicResult.apiError;
+    }
+
+    return AppLogicResult.ok;
+  }
+
   Future<AppLogicResult> login(String email, String password) async {
     email = email.toLowerCase().trim();
     _ephemeralEmail = email;
@@ -330,7 +341,7 @@ class AppLogic {
       final result = await loginVerify(response.challengeResponse!);
 
       if (result == AppLogicResult.ok) {
-        return AppLogicResult.loginDoesNotRequireChallenge;
+        return AppLogicResult.accountActionDoesNotRequireChallenge;
       }
 
       return result;
@@ -376,22 +387,74 @@ class AppLogic {
     return AppLogicResult.ok;
   }
 
-  Future<bool> changePassword(String oldPassword, String newPassword) async {
+  Future<AppLogicResult> changePassword(
+      String currentPassword, String newPassword) async {
     final email = await config.userEmail;
 
     if (email == null) {
-      logger.e('Email was null when attempting to change password.');
-      return false;
+      return AppLogicResult.missedStepError;
     }
 
-    final request = crypto.generateChangePasswordRequest(
-        email, oldPassword.trim(), newPassword.trim());
+    final request =
+        crypto.generateChangePasswordRequest(email, currentPassword.trim());
 
     if (request == null) {
-      return false;
+      return AppLogicResult.cryptoError;
     }
 
-    return await _api.ChangePassword(request);
+    final response = await _api.changePassword(request);
+
+    if (response == null) {
+      return AppLogicResult.apiError;
+    }
+
+    if (response.challengeResponse != null) {
+      final result =
+          await changePasswordVerify(response.challengeResponse!, newPassword);
+
+      if (result == AppLogicResult.ok) {
+        return AppLogicResult.accountActionDoesNotRequireChallenge;
+      }
+
+      return result;
+    }
+
+    return AppLogicResult.ok;
+  }
+
+  Future<AppLogicResult> changePasswordVerify(
+      String challengeResponse, String newPassword) async {
+    final email = await config.userEmail;
+
+    if (email == null) {
+      return AppLogicResult.missedStepError;
+    }
+
+    final challengeResponseData =
+        crypto.generateAuthChallengeResponse(challengeResponse.trim());
+
+    if (challengeResponseData == null) {
+      return AppLogicResult.cryptoError;
+    }
+
+    // TODO: do we need to re-encrypt the data keys?
+
+    final request =
+        crypto.generateChangePasswordRequest(email, newPassword.trim());
+
+    if (request == null) {
+      return AppLogicResult.cryptoError;
+    }
+
+    request.challengeResponse = challengeResponseData;
+
+    final success = await _api.changePasswordVerify(request);
+
+    if (!success) {
+      return AppLogicResult.apiError;
+    }
+
+    return AppLogicResult.ok;
   }
 
   Future<bool> subscribe(String token) async {
@@ -444,14 +507,6 @@ class AppLogic {
     return true;
   }
 
-  Future<bool> deleteAccount() async {
-    if (!(await api.deleteAccount())) {
-      return false;
-    }
-
-    return await logout(shouldNotifyServer: false) == AppLogicResult.ok;
-  }
-
   // These paths could be files or directories
   Future<void> addFiles(List<String> filePaths, FileSource source) async {
     // Use a mutex to try to address the issue of duplicate file drop events
@@ -476,10 +531,7 @@ class AppLogic {
           }
         }
       } else {
-        final file = io.File(path);
-        if (await file.exists()) {
-          filePaths.add(path);
-        }
+        filePaths.add(path);
       }
     }
 
@@ -493,6 +545,19 @@ class AppLogic {
   Future<void> _addFileDocumentByPath(
       String filePath, FileSource source) async {
     final file = io.File(filePath);
+    if (await file.exists()) {
+      final stat = await file.stat();
+
+      // Max file size is 10GB, which is 10 * 1024^3 bytes, which is 10,737,418,240 bytes
+      if (stat.size > 10737418240) {
+        appState.errorMessages.value.add(
+            'File $filePath cannot be added as it is larger than the maximum file size limit of 10GB.');
+        return;
+      }
+    } else {
+      appState.errorMessages.value.add('File $filePath cannot be opened.');
+      return;
+    }
 
     if (basename(filePath).toLowerCase().endsWith('.enex')) {
       await _evernoteImporter.import(file);
@@ -1162,5 +1227,54 @@ class AppLogic {
 
   Future<bool> submitCrashReport(String report) async {
     return api.submitCrashReport(report);
+  }
+
+  Future<AppLogicResult> deleteAccount(String password) async {
+    final email = await config.userEmail;
+
+    if (email == null) {
+      return AppLogicResult.missedStepError;
+    }
+
+    final request = crypto.generateChallengeRequestData(email, password.trim());
+
+    if (request == null) {
+      return AppLogicResult.cryptoError;
+    }
+
+    final response = await _api.deleteAccount(request);
+
+    if (response == null) {
+      return AppLogicResult.apiError;
+    }
+
+    if (response.challengeResponse != null) {
+      final result = await deleteAccountVerify(response.challengeResponse!);
+
+      if (result == AppLogicResult.ok) {
+        return AppLogicResult.accountActionDoesNotRequireChallenge;
+      }
+
+      return result;
+    }
+
+    return AppLogicResult.ok;
+  }
+
+  Future<AppLogicResult> deleteAccountVerify(String challengeResponse) async {
+    final request =
+        crypto.generateAuthChallengeResponse(challengeResponse.trim());
+
+    if (request == null) {
+      return AppLogicResult.cryptoError;
+    }
+
+    final success = await _api.deleteAccountVerify(request);
+
+    if (success) {
+      return await logout(shouldNotifyServer: false);
+    }
+
+    return AppLogicResult.apiError;
   }
 }
