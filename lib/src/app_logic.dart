@@ -1,7 +1,6 @@
 import 'dart:io' as io;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:get_it/get_it.dart';
 import 'package:mime/mime.dart';
 import 'package:mutex/mutex.dart';
@@ -97,53 +96,8 @@ class AppLogic {
       return;
     }
 
-    logger.i('Performing first run actions');
-
     await config.persistClientId();
-    await _populateInitialStickers();
-
-    final gettingStartedData = await _getAssetData('user_guide.pdf');
-
-    final gettingStartedDocument =
-        await _addFileDocumentFromBytes(gettingStartedData, 'User Guide.pdf');
-
-    final unicornSticker = (await _db.getStickerByName('Unicorn'))!;
-    await attachStickerToDocument(gettingStartedDocument, unicornSticker);
-
     await config.setFirstRunCompleted();
-  }
-
-  Future<void> _populateInitialStickers() async {
-    final List<String> stickerNames = [
-      'Lock',
-      'Sync',
-      'Unicorn',
-      'Work',
-      'Bin',
-      'Books',
-      'Bulb',
-      'Car',
-      'Friend',
-      'Heart',
-      'Money'
-    ];
-
-    // Create the stickers
-    final stickers = await Future.wait(stickerNames.map(
-        (stickerName) async => getOrCreateSticker(stickerName, save: false)));
-
-    // Attach SVG images
-    await Future.wait(
-        stickers.map((sticker) async => _attachStickerSvgAsset(sticker)));
-  }
-
-  Future<void> _attachStickerSvgAsset(Sticker sticker) async {
-    sticker.svg = (await rootBundle
-            .load('assets/stickers/${sticker.name.toLowerCase()}.svg'))
-        .buffer
-        .asUint8List();
-
-    await saveSticker(sticker);
   }
 
   Future<bool> sendSupportEnquiry(String? email, String message) async {
@@ -612,7 +566,7 @@ class AppLogic {
     return fileDocument;
   }
 
-  Future<FileDocument> _addFileDocumentFromBytes(
+  Future<FileDocument> addFileDocumentFromBytes(
       Uint8List data, String? fileName) async {
     final file = await createOrGetExistingFileFromBytes(data, fileName);
     return _addFileDocumentFromFileModelObject(file, fileName);
@@ -654,6 +608,10 @@ class AppLogic {
     }
 
     return sticker;
+  }
+
+  Future<Sticker?> getStickerByName(String name) async {
+    return _db.getStickerByName(name);
   }
 
   Future<AppLogicResult> attachStickerToDocument(
@@ -1009,11 +967,6 @@ class AppLogic {
 
     sync(); // Don't await
     return AppLogicResult.ok;
-  }
-
-  Future<Uint8List> _getAssetData(String name) async {
-    final data = await rootBundle.load('assets/$name');
-    return Uint8List.fromList(data.buffer.asUint8List());
   }
 
   Future<void> updateAccountDetails(
