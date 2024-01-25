@@ -1070,7 +1070,40 @@ class AppLogic {
   }
 
   Future<bool> deleteDocument(Document document) async {
-    await _db.delete(document);
+    List<File> filesToDelete = [];
+
+    if (document is FileDocument) {
+      final file = await getFileDocumentFile(document);
+      filesToDelete.add(file);
+    }
+
+    if (document is BlockDocument) {
+      final blocks = await logic.getBlocksForBlockDocument(document);
+      blocks.forEach((element) {
+        // TODO: add block document files to the list
+      });
+    }
+
+    // TODO: only remove files that are dangling and not used by other documents
+
+    for (final File file in filesToDelete) {
+      final success = await _deleteFile(file);
+      if (!success) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  Future<bool> _deleteFile(File file) async {
+    await _db.deleteFile(file);
+    final success = await _api.deleteFile(file.id);
+
+    if (!success) {
+      return false;
+    }
+
     sync(); // Don't await
     return true;
   }

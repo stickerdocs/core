@@ -358,6 +358,11 @@ class APIService {
     return null;
   }
 
+  Future<bool> deleteFile(String fileId) async {
+    final response = await sendDelete('file/$fileId');
+    return response.statusCode == HttpStatus.ok;
+  }
+
   Future<bool> sendInvitation(InvitationRequest request) async {
     final response = await sendPost('invite', body: request);
     return response.statusCode == HttpStatus.ok;

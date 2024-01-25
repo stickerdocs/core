@@ -597,6 +597,27 @@ class DBService {
     await batch.commit(noResult: true);
   }
 
+  Future<void> deleteFile(File file) async {
+    await delete(file);
+
+    final batch = (await _db).batch();
+
+    batch.delete('file_chunk_upload',
+        where: 'file_id = ?', whereArgs: [file.id]);
+    batch.delete('file_chunk_download',
+        where: 'file_id = ?', whereArgs: [file.id]);
+    batch.update(
+        'file',
+        {
+          'downloaded': 0,
+          'uploaded': 0,
+        },
+        where: 'file_id = ?',
+        whereArgs: [file.id]);
+
+    await batch.commit(noResult: true);
+  }
+
   Future<File?> getFileBySignature(int size, String sha256) async {
     final db = await _db;
 
