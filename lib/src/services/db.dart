@@ -94,6 +94,34 @@ class DBService {
     return result.first['value'].toString();
   }
 
+  Future<void> setAppConfig(String key, String? value) async {
+    final db = await _db;
+    final formattedKey = 'app.$key';
+
+    if (value == null) {
+      await db.delete('config', where: 'key = ?', whereArgs: [formattedKey]);
+      return;
+    }
+
+    await db.execute(
+        'INSERT INTO config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?',
+        [formattedKey, value, value]);
+  }
+
+  Future<String?> getAppConfig(String key) async {
+    final db = await _db;
+    final formattedKey = 'app.$key';
+
+    final result =
+        await db.query('config', where: 'key = ?', whereArgs: [formattedKey]);
+
+    if (result.isEmpty) {
+      return null;
+    }
+
+    return result.first['value'].toString();
+  }
+
   Future<void> save(DBModel model) async {
     final changes = model.changeset();
 

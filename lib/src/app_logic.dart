@@ -100,6 +100,14 @@ class AppLogic {
     await config.setFirstRunCompleted();
   }
 
+  Future<void> setAppDBValue(String key, String value) async {
+    await _db.setAppConfig(key, value);
+  }
+
+  Future<String?> getAppDBValue(String key) async {
+    return _db.getAppConfig(key);
+  }
+
   Future<bool> sendSupportEnquiry(String? email, String message) async {
     return await api.sendSupportEnquiry(email, message);
   }
@@ -605,6 +613,9 @@ class AppLogic {
 
     if (save) {
       await saveSticker(sticker);
+
+      // Call this to update the sticker list but don't await
+      searchStickers();
     }
 
     return sticker;
