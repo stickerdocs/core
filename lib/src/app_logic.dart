@@ -1121,6 +1121,7 @@ class AppLogic {
     }
 
     sync(); // Don't await
+    searchDocuments(); // Don't await
     return true;
   }
 
