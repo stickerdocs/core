@@ -1109,6 +1109,11 @@ class AppLogic {
 
   Future<bool> _deleteFile(File file) async {
     await _db.deleteFile(file);
+
+    if (appState.accountDetails.value == null) {
+      return true;
+    }
+
     final success = await _api.deleteFile(file.id);
 
     if (!success) {
