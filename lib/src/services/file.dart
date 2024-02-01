@@ -186,6 +186,7 @@ class FileService {
 
     if (url != null) {
       fileChunk.url = url;
+      _db.updateFileChunkUploadUrl(fileChunk);
     }
   }
 
@@ -397,6 +398,7 @@ class FileService {
 
     if (url != null) {
       fileChunk.url = url;
+      _db.updateFileChunkDownloadUrl(fileChunk);
     }
   }
 

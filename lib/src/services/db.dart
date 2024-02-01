@@ -472,18 +472,17 @@ class DBService {
     return FileChunk.fromMaps(result);
   }
 
-  Future<void> updateFileChunkUploadUrl(
-      String fileId, int chunkIndex, String url) async {
+  Future<void> updateFileChunkUploadUrl(FileChunk fileChunk) async {
     final db = await _db;
 
     await db.update(
       'file_chunk_upload',
       {
-        'url': url,
-        'url_created': isoDateToStringNow(),
+        'url': fileChunk.url,
+        'url_created': isoDateToString(isoDateNow()),
       },
       where: 'file_id = ? AND chunk_index = ?',
-      whereArgs: [fileId, chunkIndex],
+      whereArgs: [fileChunk.fileId, fileChunk.index],
     );
   }
 
