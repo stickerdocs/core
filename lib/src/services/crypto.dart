@@ -395,9 +395,6 @@ class CryptoService {
     final response =
         RegisterVerifyResponse.deserialize(uint8ListToString(plainText));
 
-    logger.t(
-        'Signing private key: ${base64Encode(response.requestSigningPrivateKey)}');
-
     await setApiRequestSigningPrivateKey(response.requestSigningPrivateKey);
 
     return true;
@@ -434,8 +431,8 @@ class CryptoService {
         authKey: authKey);
   }
 
-
-  ChallengeRequest? generateChallengeRequestData(String email, String password) {
+  ChallengeRequest? generateChallengeRequestData(
+      String email, String password) {
     _ephemeralPassword = password;
 
     // 72 bytes
@@ -447,8 +444,7 @@ class CryptoService {
     }
 
     return ChallengeRequest(
-        authPublicKey: _ephemeralAccountKeyPair.publicKey,
-        authKey: authKey);
+        authPublicKey: _ephemeralAccountKeyPair.publicKey, authKey: authKey);
   }
 
   ChangePasswordRequest? generateChangePasswordRequest(
@@ -461,15 +457,13 @@ class CryptoService {
       return null;
     }
 
-
     return ChangePasswordRequest(
-        authPublicKey: _ephemeralAccountKeyPair.publicKey,
-        authKey: authKey);
+        authPublicKey: _ephemeralAccountKeyPair.publicKey, authKey: authKey);
   }
 
-   ChangePasswordRequest? generateChangePasswordVerifyRequest(
+  ChangePasswordRequest? generateChangePasswordVerifyRequest(
       String email, String newPassword) {
-     // 72 bytes
+    // 72 bytes
     final authKey = _generateEncryptedAuthKey(email, newPassword);
 
     if (authKey == null) {
@@ -478,8 +472,7 @@ class CryptoService {
     }
 
     return ChangePasswordRequest(
-        authPublicKey: _ephemeralAccountKeyPair.publicKey,
-        authKey: authKey);
+        authPublicKey: _ephemeralAccountKeyPair.publicKey, authKey: authKey);
   }
 
   Uint8List? generateAuthChallengeResponse(String challengeResponse) {
@@ -517,9 +510,6 @@ class CryptoService {
     key.dispose();
 
     await config.setUserId(response.userId);
-
-    logger.t(
-        'Signing private key: ${base64Encode(response.requestSigningPrivateKey)}');
 
     await setApiRequestSigningPrivateKey(response.requestSigningPrivateKey);
 
