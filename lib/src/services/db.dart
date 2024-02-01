@@ -431,8 +431,12 @@ class DBService {
     final batch = (await _db).batch();
 
     for (var fileChunk in fileChunks) {
-      batch.update('file_chunk_upload',
-          {'url': fileChunk.url, 'url_created': isoDateToStringNow()},
+      batch.update(
+          'file_chunk_upload',
+          {
+            'url': fileChunk.url,
+            'url_created': isoDateToString(fileChunk.urlCreated!)
+          },
           where: 'file_id = ? AND chunk_index = ?',
           whereArgs: [fileChunk.fileId, fileChunk.index]);
     }
@@ -479,7 +483,7 @@ class DBService {
       'file_chunk_upload',
       {
         'url': fileChunk.url,
-        'url_created': isoDateToString(isoDateNow()),
+        'url_created': isoDateToString(fileChunk.urlCreated!),
       },
       where: 'file_id = ? AND chunk_index = ?',
       whereArgs: [fileChunk.fileId, fileChunk.index],
@@ -508,7 +512,7 @@ class DBService {
       'file_chunk_download',
       {
         'url': fileChunk.url,
-        'url_created': isoDateToString(isoDateNow()),
+        'url_created': isoDateToString(fileChunk.urlCreated!),
       },
       where: 'file_id = ? AND chunk_index = ?',
       whereArgs: [fileChunk.fileId, fileChunk.index],

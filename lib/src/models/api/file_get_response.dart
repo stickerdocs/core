@@ -30,7 +30,7 @@ class FileGetResponse {
                 sourceUserId: sourceUserId,
                 md5: fileChunk['md5'],
                 url: fileChunk['url'],
-                urlCreated: fromIsoDateString(map['created'])))
+                urlCreated: isoDateNow()))
             .toList(),
         signature = base64ToUint8List(map['signature']);
 

@@ -151,6 +151,7 @@ class FileService {
 
     fileChunks.forEachIndexed((index, fileChunk) {
       fileChunk.url = chunkUrls[index];
+      fileChunk.urlCreated = isoDateNow();
     });
 
     await _db.updateFileChunkUploadUrls(fileChunks);
@@ -186,6 +187,7 @@ class FileService {
 
     if (url != null) {
       fileChunk.url = url;
+      fileChunk.urlCreated = isoDateNow();
       _db.updateFileChunkUploadUrl(fileChunk);
     }
   }
@@ -398,6 +400,7 @@ class FileService {
 
     if (url != null) {
       fileChunk.url = url;
+      fileChunk.urlCreated = isoDateNow();
       _db.updateFileChunkDownloadUrl(fileChunk);
     }
   }
