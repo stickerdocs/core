@@ -24,7 +24,6 @@ import 'package:stickerdocs_core/src/services/crypto.dart';
 import 'package:stickerdocs_core/src/services/db.dart';
 import 'package:stickerdocs_core/src/utils.dart';
 
-
 // Each chunk is 4MB, which is 4 * 1024^2 bytes, which is 4,194,304 bytes
 // Max file size is 10GB, which is 10 * 1024^3 bytes, which is 10,737,418,240 bytes
 // Therefore the maximum number of chunks permitted is 2,560 (10 * 1024^3 / 4 * 1024^2)
@@ -500,7 +499,11 @@ class FileService {
     }
 
     if (response.body.isNotEmpty) {
-      logger.t('<< ${json.encode(response.body)}');
+      if (response.headers['content-type'] == 'binary/octet-stream') {
+        logger.t('<< Binary data: ${response.contentLength} bytes');
+      } else {
+        logger.t('<< ${json.encode(response.body)}');
+      }
     }
 
     return response;
