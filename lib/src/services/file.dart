@@ -163,7 +163,7 @@ class FileService {
   }
 
   Future<void> _refreshExpiredUploadUrl(FileChunk fileChunk) async {
-    if (!_hasFileChunkUrlExpired(fileChunk)) {
+    if (_isFileChunkUrlValid(fileChunk)) {
       return;
     }
 
@@ -171,12 +171,12 @@ class FileService {
     await _db.updateFileChunkUploadUrls([fileChunk]);
   }
 
-  bool _hasFileChunkUrlExpired(FileChunk fileChunk) {
-    if (fileChunk.urlCreated == null) {
-      return true;
+  bool _isFileChunkUrlValid(FileChunk fileChunk) {
+    if (fileChunk.url == null || fileChunk.urlCreated == null) {
+      return false;
     }
 
-    return fileChunk.urlCreated!
+    return !fileChunk.urlCreated!
         .add(urlExpirationDuration)
         .isBefore(isoDateNow());
   }
@@ -255,8 +255,13 @@ class FileService {
   }
 
   Future<bool> _uploadFileChunk(FileChunk fileChunk) async {
-    await _refreshExpiredUploadUrl(fileChunk);
+    // Hard stop after 10 attempts
+    if (fileChunk.attempt > 10) {
+      return false;
+    }
+
     await _db.incrementFileChunkUploadCounter(fileChunk);
+    await _refreshExpiredUploadUrl(fileChunk);
 
     final file = io.File(join(
         config.dataOutboxPath, fileChunk.fileId, fileChunk.index.toString()));
@@ -345,8 +350,7 @@ class FileService {
     }
 
     if (_haveAllFileChunksBeenDownloaded(fileChunksToDownload)) {
-      await _fileDownloadedSuccess(
-          fileId, fileChunksToDownload.length, encryptionKey);
+      await _fileDownloadedSuccess(fileId, encryptionKey);
       return true;
     }
 
@@ -380,7 +384,7 @@ class FileService {
   }
 
   Future<void> _refreshExpiredDownloadUrl(FileChunk fileChunk) async {
-    if (!_hasFileChunkUrlExpired(fileChunk)) {
+    if (_isFileChunkUrlValid(fileChunk)) {
       return;
     }
 
@@ -431,7 +435,10 @@ class FileService {
   }
 
   Future<void> _fileDownloadedSuccess(
-      String fileId, int numberOfChunks, Uint8List encryptionKey) async {
+      String fileId, Uint8List encryptionKey) async {
+    final fileChunks = await _db.getFileChunksForDownload(fileId);
+    final numberOfChunks = fileChunks.length;
+
     // Stitch the file back together if required
     final encryptedFilePath = await _stitchFileTogether(fileId, numberOfChunks);
 
