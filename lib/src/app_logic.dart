@@ -1104,10 +1104,15 @@ class AppLogic {
       }
     }
 
+    // Don't forget to delete the document as well.
+    _db.delete(document);
+
     return true;
   }
 
   Future<bool> _deleteFile(File file) async {
+    await file.getFile().delete();
+
     await _db.deleteFile(file);
 
     if (appState.accountDetails.value == null) {
