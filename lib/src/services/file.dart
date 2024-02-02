@@ -33,10 +33,13 @@ const chunkSize = 4194304;
 const urlExpirationDuration = Duration(hours: 1);
 
 class FileService {
+  final storageBaseUrl;
   final DBService _db = GetIt.I.get<DBService>();
   final APIService _api = GetIt.I.get<APIService>();
 
   AppLogic? _logicInstance;
+
+  FileService(this.storageBaseUrl);
 
   AppLogic get _logic {
     _logicInstance ??= GetIt.I.get<AppLogic>();
@@ -266,6 +269,11 @@ class FileService {
     await _db.incrementFileChunkUploadCounter(fileChunk);
     await _refreshExpiredUploadUrl(fileChunk);
 
+    // Prevent man-in-the middle URL redirection at the SSL layer
+    if (!fileChunk.url!.startsWith(storageBaseUrl)) {
+      return false;
+    }
+
     final file = io.File(join(
         config.dataOutboxPath, fileChunk.fileId, fileChunk.index.toString()));
     final data = await file.readAsBytes();
@@ -409,8 +417,18 @@ class FileService {
   }
 
   Future<bool> _downloadFileChunk(FileChunk fileChunk) async {
-    await _refreshExpiredDownloadUrl(fileChunk);
+    // Hard stop after 10 attempts
+    if (fileChunk.attempt > 10) {
+      return false;
+    }
+
     await _db.incrementFileChunkDownloadCounter(fileChunk);
+    await _refreshExpiredDownloadUrl(fileChunk);
+
+    // Prevent man-in-the middle URL redirection at the SSL layer
+    if (!fileChunk.url!.startsWith(storageBaseUrl)) {
+      return false;
+    }
 
     final client = http.Client();
     final downloadResponse = await client.get(Uri.parse(fileChunk.url!));

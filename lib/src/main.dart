@@ -28,6 +28,7 @@ class CoreConfig {
   final AppState appState;
   final Uint8List stickerDocsPublicKey;
   final Uint8List reportHarmPublicKey;
+  final String storageBaseUrl;
 
   CoreConfig({
     required this.dataPath,
@@ -37,6 +38,7 @@ class CoreConfig {
     required this.appState,
     required this.stickerDocsPublicKey,
     required this.reportHarmPublicKey,
+    required this.storageBaseUrl,
   });
 }
 
@@ -62,7 +64,7 @@ void registerSingletons(CoreConfig config) {
         config.appName,
         config.appVersion,
       ));
-  GetIt.I.registerLazySingleton(() => FileService());
+  GetIt.I.registerLazySingleton(() => FileService(config.storageBaseUrl));
   GetIt.I.registerLazySingleton(() => SyncService());
   GetIt.I.registerLazySingleton(() => SyncSharedService());
   GetIt.I.registerLazySingleton(() => AppLogic(config.appState));
