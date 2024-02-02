@@ -283,6 +283,9 @@ class FileService {
         await processResponse('PUT', fileChunk.url!, headers, uploadResponse);
 
     if (response.statusCode != 200) {
+      // Clear the URL to trigger a a fresh S3 URL
+      fileChunk.url = null;
+      await _db.updateFileChunkUploadUrl(fileChunk);
       return false;
     }
 
@@ -415,6 +418,9 @@ class FileService {
         await processResponse('GET', fileChunk.url!, null, downloadResponse);
 
     if (response.statusCode != 200) {
+      // Clear the URL to trigger a a fresh S3 URL
+      fileChunk.url = null;
+      await _db.updateFileChunkDownloadUrl(fileChunk);
       return false;
     }
 
