@@ -26,6 +26,10 @@ class File extends DBModel {
   String? _sourceUserId;
 
   static const tableName = 'file';
+  static const nameKey = 'name';
+  static const sizeKey = 'size';
+  static const sha256Key = 'sha256';
+  static const contentTypeKey = 'content_type';
   static const sourceUserIdKey = 'source_user_id';
   static const encryptionKeyKey = 'encryption_key';
   static const downloadedFromSourceUserKey = 'downloaded_from_source_user';
@@ -48,19 +52,19 @@ class File extends DBModel {
     var changes = <String, dynamic>{};
 
     if (isNew && name != null || name != _name) {
-      changes['name'] = name;
+      changes[nameKey] = name;
     }
 
     if (isNew && size != null || size != _size) {
-      changes['size'] = size;
+      changes[sizeKey] = size;
     }
 
     if (isNew && sha256 != null || sha256 != _sha256) {
-      changes['sha256'] = sha256;
+      changes[sha256Key] = sha256;
     }
 
     if (isNew && contentType != null || contentType != _contentType) {
-      changes['content_type'] = contentType;
+      changes[contentTypeKey] = contentType;
     }
 
     if (isNew && encryptionKey != null || encryptionKey != _encryptionKey) {
@@ -98,10 +102,10 @@ class File extends DBModel {
 
   static File fromMap(Map<String, dynamic> map) {
     var file = File(
-        name: map['name'],
-        size: map['size'],
-        sha256: map['sha256'],
-        contentType: map['content_type'],
+        name: map[nameKey],
+        size: map[sizeKey],
+        sha256: map[sha256Key],
+        contentType: map[contentTypeKey],
         uploaded: (map['uploaded'] ?? 0) == 1,
         downloaded: (map['downloaded'] ?? 0) == 1,
         downloadedFromSourceUser: (map[downloadedFromSourceUserKey] ?? 0) == 1);

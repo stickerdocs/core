@@ -115,9 +115,14 @@ class FileService {
   Future<List<FileChunk>?> _getFileChunksToUpload(File file) async {
     var fileChunks = await _db.getFileChunksForUpload(file.id);
 
-    // Regardless of what chunks have been uploaded, if we have chunked the file
-    // then we do not want to encrypt and chunk it again
+    // If we have chunked the file then we do not want to encrypt and chunk it again.
+    // Continue to upload the remaining chunks.
     if (fileChunks.isNotEmpty) {
+      // The file PUT operation may have been unsuccessful
+      if (fileChunks.every((chunk) => chunk.url == null)) {
+        await _tryPutFile(file, fileChunks);
+      }
+
       return fileChunks.where(_isFileChunkNotUploaded).toList();
     }
 
@@ -135,11 +140,21 @@ class FileService {
     // Store chunk hashes in DB
     await _db.addFileChunkUploadEntries(fileChunks);
 
+    await _tryPutFile(file, fileChunks);
+
+    return fileChunks;
+  }
+
+  Future<void> _tryPutFile(File file, List<FileChunk> fileChunks) async {
+    final encryptedFileSize = fileChunks
+        .map((e) => e.size)
+        .reduce((value, element) => value! + element!);
+
     // Create the file upload request
     final request = FilePutRequest(
         fileId: file.id,
         created: file.created,
-        size: encryptedFileData.length,
+        size: encryptedFileSize!,
         fileChunks: fileChunks);
 
     // Sign the request
@@ -149,7 +164,7 @@ class FileService {
     final chunkUrls = await _api.putFile(request);
 
     if (chunkUrls.isEmpty) {
-      return null;
+      return;
     }
 
     fileChunks.forEachIndexed((index, fileChunk) {
@@ -158,8 +173,6 @@ class FileService {
     });
 
     await _db.updateFileChunkUploadUrls(fileChunks);
-
-    return fileChunks;
   }
 
   bool _isFileChunkNotUploaded(FileChunk fileChunk) {

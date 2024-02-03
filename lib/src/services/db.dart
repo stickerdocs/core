@@ -449,12 +449,13 @@ class DBService {
 
     // Do not filter by AND uploaded = 0 here
     // This is because we need to know whether the file has been chunked or not
-    // If we do that filter then we will try to re-encrypt the file
+    // If we do that filter then we might try to re-encrypt the file
 
     final result = await db.query(
       'file_chunk_upload',
       where: 'file_id = ?',
       whereArgs: [fileId],
+      orderBy: 'chunk_index',
     );
 
     return FileChunk.fromMaps(result);
