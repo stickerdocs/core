@@ -106,7 +106,6 @@ class DBSchema {
         chunk_index INT NOT NULL,
         source_user_id TEXT,
         md5 TEXT NOT NULL,
-        size INT,
         url TEXT,
         url_created TEXT,
         attempt INT DEFAULT 0 NOT NULL,
