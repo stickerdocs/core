@@ -708,6 +708,8 @@ class AppLogic {
     }
 
     if (!await _api.sendInvitation(invitationRequest)) {
+      // It is possible that we are out of invitations
+      await updateAccountDetails();
       return AppLogicResult.apiError;
     }
 
