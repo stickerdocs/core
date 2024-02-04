@@ -472,6 +472,7 @@ class DBService {
       'file_chunk_download',
       where: 'file_id = ?',
       whereArgs: [fileId],
+      orderBy: 'chunk_index',
     );
 
     return FileChunk.fromMaps(result);
