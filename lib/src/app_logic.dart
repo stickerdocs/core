@@ -825,6 +825,9 @@ class AppLogic {
 
     await _db.save(sharedSticker);
 
+    // update the sticker collection
+    await searchStickers();
+
     sync(); // Don't await
     return AppLogicResult.ok;
   }
