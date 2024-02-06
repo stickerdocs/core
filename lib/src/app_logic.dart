@@ -521,14 +521,15 @@ class AppLogic {
       return;
     }
 
-    if (basename(filePath).toLowerCase().endsWith('.enex')) {
-      await _evernoteImporter.import(file);
+    // This is not ready for prod yet
+    // if (basename(filePath).toLowerCase().endsWith('.enex')) {
+    //   await _evernoteImporter.import(file);
 
-      // Call this to update the document list but don't await
-      searchDocuments();
+    //   // Call this to update the document list but don't await
+    //   searchDocuments();
 
-      return;
-    }
+    //   return;
+    // }
 
     // Do some filename modifications
     String fileName = basename(file.path);
