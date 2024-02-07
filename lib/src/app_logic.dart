@@ -633,10 +633,7 @@ class AppLogic {
         stickerId: sticker.id,
         fileDocumentId: document.id,
       ));
-      return AppLogicResult.ok;
-    }
-
-    if (document is BlockDocument) {
+    } else if (document is BlockDocument) {
       await _db.save(StickerBlockDocument(
         stickerId: sticker.id,
         blockDocumentId: document.id,
@@ -813,7 +810,6 @@ class AppLogic {
     final sticker = Sticker(name: invitationInfo.stickerName);
     sticker.id = invitationInfo.stickerId;
     sticker.style = invitationInfo.stickerStyle;
-    sticker.svg = invitationInfo.stickerSvg;
     sticker.setSVG(invitationInfo.stickerSvg);
 
     await _db.save(sticker);
