@@ -763,7 +763,7 @@ class DBService {
         WHERE sfd.file_document_id = '${document.id}'
         AND s.deleted IS NULL
         AND sfd.deleted IS NULL
-        ORDER BY sfd.created DESC
+        ORDER BY sfd.created
       ''');
 
       stickers.addAll(Sticker.fromMaps(result));
