@@ -38,7 +38,7 @@ class InvitationInfo {
     final sticker = Sticker(name: stickerName);
     sticker.id = stickerId;
     sticker.style = stickerStyle;
-    sticker.svg = stickerSvg;
+    sticker.setSVG(stickerSvg);
     return sticker;
   }
 }

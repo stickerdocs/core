@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:stickerdocs_core/src/models/db/db_model.dart';
+import 'package:stickerdocs_core/src/svg_security.dart';
 import 'package:stickerdocs_core/src/utils.dart';
 
 class Sticker extends DBModel {
@@ -9,12 +10,12 @@ class Sticker extends DBModel {
 
   String name;
   String? style = 'border';
-  Uint8List? svg;
+  Uint8List? _svg;
 
   // Shadow fields
   String? _name;
   String? _style;
-  Uint8List? _svg;
+  Uint8List? __svg;
 
   Sticker({required this.name}) {
     table = tableName;
@@ -33,8 +34,8 @@ class Sticker extends DBModel {
       changes['style'] = style;
     }
 
-    if (isNew && svg != null || svg != _svg) {
-      changes['svg'] = uint8ListToBase64(svg!);
+    if (isNew && _svg != null || _svg != __svg) {
+      changes['svg'] = getBase64SVG();
     }
 
     populateCreatedAndUpdatedChanges(changes);
@@ -45,7 +46,7 @@ class Sticker extends DBModel {
   void commit({required bool isNew}) {
     _name = name;
     _style = style;
-    _svg = svg;
+    __svg = _svg;
     baseCommit(isNew: isNew);
   }
 
@@ -53,7 +54,9 @@ class Sticker extends DBModel {
     var sticker = Sticker(name: map['name']);
 
     sticker.style = map['style'];
-    sticker.svg = base64ToUint8List(map['svg']);
+
+    // We don't need to re-sanitise the data for performance when loading from DB
+    sticker._svg = base64ToUint8List(map['svg']);
 
     DBModel.mapBase(sticker, map);
     return sticker;
@@ -65,8 +68,20 @@ class Sticker extends DBModel {
     });
   }
 
-  Uri getSvgDataUri() {
-    final base64StickerData = base64Encode(svg!).toString();
+  void setSVG(Uint8List svg) {
+    if (isSafeSVG(svg)) {
+      _svg = svg;
+    }
+  }
+
+  String getBase64SVG() {
+    return uint8ListToBase64(_svg!);
+  }
+
+  Uri getSVGDataUri() {
+    // This is the regular B64-encoding, not the URL-safe one
+    // Do not be tempted to refactor with getBase64Svg()
+    final base64StickerData = base64Encode(_svg!).toString();
     return Uri.parse('data:image/svg+xml;base64,$base64StickerData');
   }
 }

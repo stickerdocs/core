@@ -33,7 +33,7 @@ class InvitationRequest {
         'sticker_id': sticker.id,
         'sticker_name': sticker.name,
         'sticker_style': sticker.style,
-        'sticker_svg': uint8ListToBase64(sticker.svg!),
+        'sticker_svg': sticker.getBase64SVG(),
         'sticker_image': uint8ListToBase64(stickerImage),
         'signing_public_key': uint8ListToBase64(signingPublicKey),
         'challenge_salt': uint8ListToBase64(challengeSalt),

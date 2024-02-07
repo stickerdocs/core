@@ -814,6 +814,7 @@ class AppLogic {
     sticker.id = invitationInfo.stickerId;
     sticker.style = invitationInfo.stickerStyle;
     sticker.svg = invitationInfo.stickerSvg;
+    sticker.setSVG(invitationInfo.stickerSvg);
 
     await _db.save(sticker);
 
