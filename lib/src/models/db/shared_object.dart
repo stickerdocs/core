@@ -21,7 +21,7 @@ class SharedObject extends DBModel {
     required this.trustedUserId,
   }) {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -45,11 +45,11 @@ class SharedObject extends DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _objectType = objectType;
     _objectId = objectId;
     _trustedUserId = trustedUserId;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static SharedObject fromMap(Map<String, dynamic> map) {

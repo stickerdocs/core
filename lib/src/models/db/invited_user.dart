@@ -25,7 +25,7 @@ class InvitedUser extends DBModel {
     required this.email,
   }) {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -59,13 +59,13 @@ class InvitedUser extends DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _stickerId = stickerId;
     _name = name;
     _email = email;
     _signingPublicKey = signingPublicKey;
     _signingPrivateKey = signingPrivateKey;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static InvitedUser fromMap(Map<String, dynamic> map) {

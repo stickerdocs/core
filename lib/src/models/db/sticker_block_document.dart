@@ -15,7 +15,7 @@ class StickerBlockDocument extends DBModel {
   StickerBlockDocument(
       {required this.stickerId, required this.blockDocumentId}) {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -35,10 +35,10 @@ class StickerBlockDocument extends DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _stickerId = stickerId;
     _blockDocumentId = blockDocumentId;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static StickerBlockDocument fromMap(Map<String, dynamic> map) {

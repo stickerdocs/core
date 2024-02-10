@@ -14,7 +14,7 @@ class FileDocument extends Document implements DBModel {
     required this.fileId,
   }) {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -30,9 +30,9 @@ class FileDocument extends Document implements DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _fileId = fileId;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static FileDocument fromMap(Map<String, dynamic> map) {

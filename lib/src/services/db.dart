@@ -146,7 +146,11 @@ class DBService {
       });
 
       await batch.commit(noResult: true);
-      model.commit(isNew: false);
+
+      // The model events have now been persisted, mark model as not new
+      model.isNew = false;
+
+      model.commit();
     });
 
     await sync();
@@ -161,7 +165,11 @@ class DBService {
           dbModelDeleted, isoDateNow());
 
       await batch.commit(noResult: true);
-      model.commit(isNew: false);
+
+      // The model events have now been persisted, mark model as not new
+      model.isNew = false;
+
+      model.commit();
     });
 
     await sync();

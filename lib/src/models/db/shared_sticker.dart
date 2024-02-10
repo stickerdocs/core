@@ -25,7 +25,7 @@ class SharedSticker extends DBModel {
     required this.ignoreExternalEvents,
   }) {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -53,12 +53,12 @@ class SharedSticker extends DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _stickerId = stickerId;
     _trustedUserId = trustedUserId;
     _sharedByMe = sharedByMe;
     _ignoreExternalEvents = ignoreExternalEvents;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static SharedSticker fromMap(Map<String, dynamic> map) {

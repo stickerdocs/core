@@ -48,12 +48,11 @@ abstract class DBModel {
   }
 
   /// Commit the changes made
-  void commit({required bool isNew});
+  void commit();
 
-  void baseCommit({required bool isNew}) {
+  void baseCommit() {
     _created = created;
     _updated = updated;
-    this.isNew = isNew;
   }
 
   static void mapBase(DBModel object, Map<String, dynamic> map) {
@@ -64,6 +63,9 @@ abstract class DBModel {
       object.updated = fromIsoDateString(map[updatedKey])!;
     }
 
-    object.commit(isNew: false);
+    // Object has been loaded from the DB so it is not new
+    object.isNew = false;
+
+    object.commit();
   }
 }

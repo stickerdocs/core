@@ -21,9 +21,9 @@ abstract class Document extends DBModel {
   }
 
   @override
-  void baseCommit({required bool isNew}) {
+  void baseCommit() {
     _title = title;
-    super.baseCommit(isNew: isNew);
+    super.baseCommit();
   }
 
   static void mapBase(Document document, Map<String, dynamic> map) {

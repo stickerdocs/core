@@ -44,7 +44,7 @@ class File extends DBModel {
     this.downloadedFromSourceUser = false,
   }) {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -90,14 +90,14 @@ class File extends DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _name = name;
     _size = size;
     _sha256 = sha256;
     _contentType = contentType;
     _encryptionKey = encryptionKey;
     _sourceUserId = sourceUserId;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static File fromMap(Map<String, dynamic> map) {

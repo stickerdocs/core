@@ -12,7 +12,7 @@ class BlockDocument extends Document implements DBModel {
 
   BlockDocument() {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -28,9 +28,9 @@ class BlockDocument extends Document implements DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _blocks = blocks;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static BlockDocument fromMap(Map<String, dynamic> map) {

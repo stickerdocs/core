@@ -24,7 +24,7 @@ class TrustedUser extends DBModel {
     required this.publicKey,
   }) {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -52,12 +52,12 @@ class TrustedUser extends DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _userId = userId;
     _name = name;
     _email = email;
     _publicKey = publicKey;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static TrustedUser fromMap(Map<String, dynamic> map) {

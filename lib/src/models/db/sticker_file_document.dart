@@ -14,7 +14,7 @@ class StickerFileDocument extends DBModel {
 
   StickerFileDocument({required this.stickerId, required this.fileDocumentId}) {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -34,10 +34,10 @@ class StickerFileDocument extends DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _stickerId = stickerId;
     _fileDocumentId = fileDocumentId;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static StickerFileDocument fromMap(Map<String, dynamic> map) {

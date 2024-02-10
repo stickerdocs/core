@@ -34,7 +34,7 @@ class Block extends DBModel {
 
   Block({required this.type}) {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -54,10 +54,10 @@ class Block extends DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _type = type;
     _data = data;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static Block fromMap(Map<String, dynamic> map) {

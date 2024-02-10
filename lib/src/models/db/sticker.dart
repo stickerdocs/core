@@ -19,7 +19,7 @@ class Sticker extends DBModel {
 
   Sticker({required this.name}) {
     table = tableName;
-    commit(isNew: true);
+    commit();
   }
 
   @override
@@ -43,11 +43,11 @@ class Sticker extends DBModel {
   }
 
   @override
-  void commit({required bool isNew}) {
+  void commit() {
     _name = name;
     _style = style;
     __svg = _svg;
-    baseCommit(isNew: isNew);
+    baseCommit();
   }
 
   static Sticker fromMap(Map<String, dynamic> map) {
