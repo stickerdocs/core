@@ -38,8 +38,9 @@ Future<void> loadProfile(String baseDataPath) async {
 Future<void> setProfile(ConfigService config, DBService db, String? email,
     bool isRegistration) async {
   final lastProfileName = await config.lastProfile;
-  final newProfileName =
-      email == null ? 'new' : CryptoService.sha256(stringToUint8List(email));
+  final newProfileName = email == null
+      ? 'new'
+      : CryptoService.sha256(stringToUint8List(email.toLowerCase()));
 
   // Were we previously logged in with this email?
   if (newProfileName == lastProfileName) {
