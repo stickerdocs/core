@@ -3,9 +3,11 @@ import 'package:flutter/widgets.dart';
 import 'package:stickerdocs_core/models.dart';
 
 class AppState {
-  final sharedStickers = ValueNotifier<List<SharedSticker>>([]);
   final documents = ValueNotifier<List<Document>>([]);
+  final documentSearchController = TextEditingController();
   final stickers = ValueNotifier<List<Sticker>>([]);
+  final stickerSearchController = TextEditingController();
+  final sharedStickers = ValueNotifier<List<SharedSticker>>([]);
   final invitedUsers = ValueNotifier<List<InvitedUser>>([]);
   final invitationToAccept = ValueNotifier<InvitationToAccept?>(null);
   final trustedUsers = ValueNotifier<List<TrustedUser>>([]);

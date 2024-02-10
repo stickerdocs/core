@@ -112,12 +112,14 @@ class AppLogic {
     return await api.sendSupportEnquiry(email, message);
   }
 
-  Future<void> searchDocuments([String? query]) async {
-    appState.documents.value = await _db.searchDocuments(query);
+  Future<void> searchDocuments() async {
+    appState.documents.value =
+        await _db.searchDocuments(appState.documentSearchController.text);
   }
 
-  Future<void> searchStickers([String? query]) async {
-    appState.stickers.value = await _db.searchStickers(query);
+  Future<void> searchStickers() async {
+    appState.stickers.value =
+        await _db.searchStickers(appState.stickerSearchController.text);
   }
 
   Future<void> populateInvitedUsers() async {
@@ -254,16 +256,17 @@ class AppLogic {
     await config.logout();
 
     appState.accountDetails.value = null;
+    appState.documents.value.clear();
+    appState.documentSearchController.clear();
+    appState.stickers.value.clear();
+    appState.stickerSearchController.clear();
     appState.invitationToAccept.value = null;
     appState.invitedUsers.value = [];
     _processedFilePaths.clear();
 
     await setProfile(config, _db, null, false);
+    await init();
 
-    // May need to re-populate the initial data
-    await _firstRun();
-
-    // updateUi();
     return AppLogicResult.ok;
   }
 
@@ -819,7 +822,7 @@ class AppLogic {
 
     await _db.save(sharedSticker);
 
-    // update the sticker collection
+    // update the sticker collection right away
     await searchStickers();
 
     sync(); // Don't await
@@ -1021,7 +1024,8 @@ class AppLogic {
       }
 
       // Update UI as we may be downloading a lot of docs
-      // updateUi();
+      searchDocuments();
+      searchStickers();
 
       // TODO:
       // todo downloaded files need to be in the state for a count of downloaded vs remaining to download, upload
@@ -1048,6 +1052,9 @@ class AppLogic {
     sticker.name = name;
     await _db.save(sticker);
 
+    // Update UI right away
+    searchStickers();
+
     sync(); // Don't await
     return AppLogicResult.ok;
   }
@@ -1055,7 +1062,7 @@ class AppLogic {
   Future<AppLogicResult> deleteSticker(Sticker sticker) async {
     await _db.delete(sticker);
 
-    // Update UI
+    // Update UI right away
     searchStickers();
 
     sync(); // Don't await
@@ -1070,6 +1077,9 @@ class AppLogic {
 
     document.title = newName;
     await _db.save(document);
+
+    // Update UI right away
+    searchDocuments();
 
     sync(); // Don't await
     return true;
@@ -1106,6 +1116,10 @@ class AppLogic {
     // Don't forget to delete the document as well.
     _db.delete(document);
 
+    // Update UI right away
+    searchDocuments();
+
+    sync(); // Don't await
     return true;
   }
 
