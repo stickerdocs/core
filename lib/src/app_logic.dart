@@ -142,17 +142,14 @@ class AppLogic {
     String password,
     String? token,
   ) async {
-    // do we really want to make this lowercase?
-    name = name.toLowerCase().trim();
-    email = email.toLowerCase().trim();
     _ephemeralEmail = email;
 
     if (token != null) {
-      token = token.toLowerCase().trim();
+      token = token.trim();
     }
 
     final request = await crypto.generateRegistrationData(
-        name, email, password.trim(), token);
+        name.trim(), email.trim(), password.trim(), token);
 
     if (request == null) {
       return AppLogicResult.cryptoError;
@@ -282,10 +279,9 @@ class AppLogic {
   }
 
   Future<AppLogicResult> login(String email, String password) async {
-    email = email.toLowerCase().trim();
     _ephemeralEmail = email;
 
-    final request = crypto.generateLoginData(email, password.trim());
+    final request = crypto.generateLoginData(email.trim(), password.trim());
 
     if (request == null) {
       return AppLogicResult.cryptoError;

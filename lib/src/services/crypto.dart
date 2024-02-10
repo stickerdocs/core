@@ -329,7 +329,7 @@ class CryptoService {
   // If we change our email we need to update the password too
   Uint8List? _generateEncryptedAuthKey(String email, String password) {
     // 32 bytes
-    final authKey = _deriveDeterministicKey(email, password);
+    final authKey = _deriveDeterministicKey(email.toLowerCase(), password);
 
     // 72 bytes
     return _encryptForStickerDocsServer(authKey.extractBytes());
