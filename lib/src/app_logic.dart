@@ -500,7 +500,9 @@ class AppLogic {
       for (final filePath in filePaths) _addFileDocumentByPath(filePath, source)
     ]);
 
-    sync(); // Don't await
+    if (filePaths.isNotEmpty) {
+      sync(); // Don't await
+    }
   }
 
   Future<void> _addFileDocumentByPath(
@@ -649,6 +651,8 @@ class AppLogic {
       final object = await _db.getStickerFileDocument(sticker, document);
       if (object != null) {
         await _db.delete(object);
+
+        sync();
       }
       return;
     }
@@ -657,10 +661,10 @@ class AppLogic {
       final object = await _db.getStickerBlockDocument(sticker, document);
       if (object != null) {
         await _db.delete(object);
+
+        sync();
       }
     }
-
-    return;
   }
 
   Future<void> saveSticker(Sticker sticker) async {
