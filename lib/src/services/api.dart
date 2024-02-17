@@ -178,7 +178,13 @@ class APIService {
   }
 
   Future<bool?> isRegistrationOpen() async {
-    final response = await sendGet('account/register');
+    http.Response response;
+
+    try {
+      response = await sendGet('account/register');
+    } catch (e) {
+      return null;
+    }
 
     if (response.statusCode != HttpStatus.ok) {
       return null;
