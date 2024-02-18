@@ -231,43 +231,47 @@ class AppLogic {
         isCurrentVersionSupported: isCurrentVersionSupported);
   }
 
-  Future<AppLogicResult> logout({bool shouldNotifyServer = true}) async {
+  Future<AppLogicResult> logout() async {
     // if (!online.value) {
     //   return AppLogicResult.offline;
     //   // TODO: queue up a logout request for when online and do the logout then
     // }
 
-    // this is normally the case, unless the API returned unauthorised
-    if (shouldNotifyServer) {
-      final result = await sync();
+    final result = await sync();
 
-      if (result != AppLogicResult.ok) {
-        return result;
-      }
-
-      final logoutSuccessful = await _api.logout();
-
-      if (!logoutSuccessful) {
-        logger.e('Could not log out');
-        return AppLogicResult.apiError;
-      }
+    if (result != AppLogicResult.ok) {
+      return result;
     }
 
-    await config.logout();
+    final logoutSuccessful = await _api.logout();
 
-    appState.accountDetails.value = null;
+    if (!logoutSuccessful) {
+      logger.e('Could not log out');
+      return AppLogicResult.apiError;
+    }
+
+    await clearOnlineState();
+
     appState.documents.value.clear();
     appState.documentSearchController.clear();
     appState.stickers.value.clear();
     appState.stickerSearchController.clear();
-    appState.invitationToAccept.value = null;
-    appState.invitedUsers.value = [];
     _processedFilePaths.clear();
 
     await setProfile(config, _db, null, false);
     await init();
 
     return AppLogicResult.ok;
+  }
+
+  Future<void> clearOnlineState() async {
+    await config.logout();
+
+    appState.accountDetails.value = null;
+    appState.invitationToAccept.value = null;
+    appState.invitedUsers.value.clear();
+    appState.trustedUsers.value.clear();
+    appState.sharedStickers.value.clear();
   }
 
   Future<AppLogicResult> logoutOtherSessions() async {
@@ -1297,7 +1301,8 @@ class AppLogic {
     final success = await _api.deleteAccountVerify(request);
 
     if (success) {
-      return await logout(shouldNotifyServer: false);
+      await clearOnlineState();
+      return AppLogicResult.ok;
     }
 
     return AppLogicResult.apiError;
