@@ -11,6 +11,10 @@ class ChallengeResponse {
       : challengeResponse = map['challenge_response'];
 
   static ChallengeResponse deserialize(String data) {
+    if (data.isEmpty) {
+      return const ChallengeResponse(challengeResponse: null);
+    }
+    
     Map<String, dynamic> decoded = jsonDecode(data);
     return ChallengeResponse.fromJson(decoded);
   }
