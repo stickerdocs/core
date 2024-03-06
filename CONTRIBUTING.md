@@ -29,7 +29,7 @@ If you believe you've found a security vulnerability, please read our [security 
 
 ### Your first contribution
 
-When you're ready to contribute, it's time to [create a pull request](/contribute/create-pull-request.md).
+When you're ready to contribute, it's time to create a pull request.
 
 #### Contributor License Agreement (CLA)
 
