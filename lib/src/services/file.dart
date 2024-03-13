@@ -33,7 +33,7 @@ const chunkSize = 4194304;
 const urlExpirationDuration = Duration(hours: 1);
 
 class FileService {
-  final storageBaseUrl;
+  final String storageBaseUrl;
   final DBService _db = GetIt.I.get<DBService>();
   final APIService _api = GetIt.I.get<APIService>();
 
