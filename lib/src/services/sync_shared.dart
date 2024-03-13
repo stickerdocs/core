@@ -53,6 +53,7 @@ class SyncSharedService {
     StickerBlockDocument.tableName,
 
     // Note we do not share SharedSticker objects, so this is not in the _permittedIncomingSharedEventTypes list
+    // It is here to enable the initial sharing of stickers.
     SharedSticker.tableName,
   };
 
@@ -79,6 +80,7 @@ class SyncSharedService {
   Future<List<Event>> getSharedIncomingEvents(
       List<Event> myOutgoingEvents) async {
     // Reset
+    // It would be better to use a container class for all this, create a new one here to pass around. Still janky though
     _sharedIncomingEventFiles.clear();
     _sharedEvents.clear();
     _allSharedStickers.clear();
@@ -122,6 +124,9 @@ class SyncSharedService {
     for (final trustedUser in await _db.getTrustedUsers()) {
       final eventsForThisUser = <Event>[];
 
+      // This code is quite horrid
+
+      // Each event group is for a specific object by type+id
       for (final eventGroup in _myOutgoingEventGroups) {
         // TODO: Note we can probably bin off the shared sticker object perhaps - unless we need the shared_by me/read-only mode
 
@@ -131,6 +136,7 @@ class SyncSharedService {
           trustedUser.id,
         );
 
+        // Are we updating the object or deleting it?
         if (hasObjectBeenSharedWithThisUser) {
           // Propagate the changes to the object
           eventsForThisUser.addAll(eventGroup);
@@ -142,6 +148,7 @@ class SyncSharedService {
           continue;
         }
 
+        // Is it a new object to share?
         if (sharedObjectProcessors.containsKey(eventGroup.first.type)) {
           // Process the event
           final additionalEvents =
@@ -220,6 +227,15 @@ class SyncSharedService {
     final stickerId = eventGroup
         .firstWhere((event) => event.key == StickerFileDocument.stickerIdKey)
         .value!;
+
+    if (!await _db.isSharedObject(
+      Sticker.tableName,
+      stickerId,
+      trustedUser.id,
+    )) {
+      // This sticker has not been shared with this user, so ignore this event.
+      return <Event>[];
+    }
 
     final fileDocumentId = eventGroup
         .firstWhere(
@@ -306,6 +322,15 @@ class SyncSharedService {
     final stickerId = eventGroup
         .firstWhere((event) => event.key == StickerBlockDocument.stickerIdKey)
         .value!;
+
+    if (!await _db.isSharedObject(
+      Sticker.tableName,
+      stickerId,
+      trustedUser.id,
+    )) {
+      // This sticker has not been shared with this user, so ignore this event.
+      return <Event>[];
+    }
 
     final blockDocumentId = eventGroup
         .firstWhere(

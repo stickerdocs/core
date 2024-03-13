@@ -54,15 +54,6 @@ final bobsCopyOfAlicesSharedSticker = SharedSticker(
   ignoreExternalEvents: false,
 );
 
-final file = File(
-  name: 'file.name',
-  size: 34,
-  sha256: 'file.sha256',
-  contentType: 'file.content_type',
-  uploaded: false,
-  downloaded: false,
-);
-
 FileDocument? _fileDocument;
 
 FileDocument get fileDocument {
@@ -73,6 +64,15 @@ FileDocument get fileDocument {
 
   return _fileDocument!;
 }
+
+final file = File(
+  name: 'file.name',
+  size: 34,
+  sha256: 'file.sha256',
+  contentType: 'file.content_type',
+  uploaded: false,
+  downloaded: false,
+);
 
 StickerFileDocument stickerFileDocument = StickerFileDocument(
     stickerId: aliceSticker.id, fileDocumentId: fileDocument.id);
@@ -101,6 +101,78 @@ final stickerFileDocumentSnapshotEvents = [
       'sticker_id', stickerFileDocument.stickerId),
   Event('timestamp.3', 1, StickerFileDocument.tableName, stickerFileDocument.id,
       'file_document_id', stickerFileDocument.fileDocumentId),
+];
+
+Sticker? _privateSticker;
+
+Sticker get privateSticker {
+  if (_privateSticker == null) {
+    _privateSticker = Sticker(name: 'private.sticker.name');
+    _privateSticker!.style = 'border';
+  }
+
+  return _privateSticker!;
+}
+
+final privateFile = File(
+  name: 'private.file.name',
+  size: 102,
+  sha256: 'private.file.sha256',
+  contentType: 'private.file.content_type',
+  uploaded: true,
+  downloaded: false,
+);
+
+FileDocument? _privateFileDocument;
+
+FileDocument get privateFileDocument {
+  if (_privateFileDocument == null) {
+    _privateFileDocument = FileDocument(fileId: privateFile.id);
+    _privateFileDocument!.title = 'private_file_document.title';
+  }
+
+  return _privateFileDocument!;
+}
+
+StickerFileDocument privateStickerFileDocument = StickerFileDocument(
+    stickerId: privateSticker.id, fileDocumentId: privateFileDocument.id);
+
+final privateStickerSnapshotEvents = [
+  Event('timestamp.1', 1, Sticker.tableName, privateSticker.id, 'name',
+      privateSticker.name),
+  Event('timestamp.1', 1, Sticker.tableName, privateSticker.id, 'style',
+      privateSticker.style!),
+];
+
+final privateFileSnapshotEvents = [
+  Event('timestamp.1', 1, File.tableName, privateFile.id, 'name',
+      privateFile.name!),
+  Event('timestamp.1', 1, File.tableName, privateFile.id, 'sha256',
+      privateFile.sha256!),
+];
+
+final privateFileDocumentSnapshotEvents = [
+  Event('timestamp.2', 1, FileDocument.tableName, privateFileDocument.id,
+      'file_id', privateFileDocument.fileId),
+  Event('timestamp.2', 1, FileDocument.tableName, privateFileDocument.id,
+      'title', privateFileDocument.title!),
+];
+
+final privateStickerFileDocumentSnapshotEvents = [
+  Event(
+      'timestamp.3',
+      1,
+      StickerFileDocument.tableName,
+      privateStickerFileDocument.id,
+      'sticker_id',
+      privateStickerFileDocument.stickerId),
+  Event(
+      'timestamp.3',
+      1,
+      StickerFileDocument.tableName,
+      privateStickerFileDocument.id,
+      'file_document_id',
+      privateStickerFileDocument.fileDocumentId),
 ];
 
 final eventFile = EventFile(
@@ -244,4 +316,11 @@ List<Event> deleteStickerEvents = [
 
 List<Event> aliceDeletesAStickerEvents() {
   return noise + deleteStickerEvents + moreNoise;
+}
+
+List<Event> aliceLabelsPrivateFileWithPrivateSticker() {
+  return privateStickerSnapshotEvents +
+      privateFileSnapshotEvents +
+      privateFileDocumentSnapshotEvents +
+      privateStickerFileDocumentSnapshotEvents;
 }

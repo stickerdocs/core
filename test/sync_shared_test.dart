@@ -376,7 +376,7 @@ void main() {
 
     when(mockDB.isSharedObject(
             Sticker.tableName, data.aliceSticker.id, data.aliceTrustsBob.id))
-        .thenAnswer((_) async => false);
+        .thenAnswer((_) async => true);
 
     when(mockDB.isSharedObject(StickerFileDocument.tableName,
             data.stickerFileDocument.id, data.aliceTrustsBob.id))
@@ -503,5 +503,43 @@ void main() {
         jsonEncode(expectedEvents));
 
     expect(fakeAPI.capturedEventFile!.fileIdsToUnshare, [data.file.id]);
+  });
+
+  test('Alice labels a private file with a private shared sticker', () async {
+    when(mockDB.getSharedStickers())
+        .thenAnswer((_) async => [data.stickerSharedByAliceToBob]);
+
+    when(mockDB.getTrustedUsers())
+        .thenAnswer((_) async => [data.aliceTrustsBob]);
+
+    when(mockDB.isSharedObject(
+            Sticker.tableName, data.privateSticker.id, data.aliceTrustsBob.id))
+        .thenAnswer((_) async => false);
+
+    when(mockDB.isSharedObject(
+            File.tableName, data.privateFile.id, data.aliceTrustsBob.id))
+        .thenAnswer((_) async => false);
+
+    when(mockDB.isSharedObject(FileDocument.tableName,
+            data.privateFileDocument.id, data.aliceTrustsBob.id))
+        .thenAnswer((_) async => false);
+
+    when(mockDB.isSharedObject(StickerFileDocument.tableName,
+            data.privateStickerFileDocument.id, data.aliceTrustsBob.id))
+        .thenAnswer((_) async => false);
+
+    when(mockDB.getStickerFileDocumentFromIds(
+            data.privateSticker.id, data.privateFileDocument.id))
+        .thenAnswer((_) async => data.stickerFileDocument);
+
+    when(mockDB.getFileDocumentSnapshotEvents(data.privateFileDocument.id))
+        .thenAnswer((_) async => data.privateFileDocumentSnapshotEvents);
+
+    final incomingEvents = await service.getSharedIncomingEvents(
+        data.aliceLabelsPrivateFileWithPrivateSticker());
+
+    expect(incomingEvents, isEmpty);
+    expect(fakeSyncService.capturedOutgoingEvents, isNull);
+    expect(fakeAPI.capturedEventFile, isNull);
   });
 }
