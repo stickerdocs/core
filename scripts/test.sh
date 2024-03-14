@@ -39,4 +39,4 @@ else
     echo -e "\n${YELLOW}There was no test coverage report.${NC}"
 fi
 
-echo -e "\n${GREEN}Core tests pass.${NC}"
+echo -e "\n${GREEN}Core tests passed.${NC}"
