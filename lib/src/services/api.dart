@@ -227,10 +227,14 @@ class APIService {
   }
 
   Future<AccountDetailsResponse?> getAccountDetails() async {
-    final response = await sendGet('account');
+    try {
+      final response = await sendGet('account');
 
-    if (response.statusCode == HttpStatus.ok) {
-      return AccountDetailsResponse.deserialize(response.body);
+      if (response.statusCode == HttpStatus.ok) {
+        return AccountDetailsResponse.deserialize(response.body);
+      }
+    } catch (exception) {
+      // Ignore
     }
 
     return null;
@@ -272,11 +276,15 @@ class APIService {
   }
 
   Future<bool> subscribe(String token) async {
-    final response = await sendPost('account/subscribe', body: {
-      'token': token,
-    });
+    try {
+      final response = await sendPost('account/subscribe', body: {
+        'token': token,
+      });
 
-    return response.statusCode == HttpStatus.ok;
+      return response.statusCode == HttpStatus.ok;
+    } catch (e) {
+      return false;
+    }
   }
 
   Future<bool> sendSupportEnquiry(String? email, String message) async {

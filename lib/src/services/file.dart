@@ -249,7 +249,7 @@ class FileService {
           fileId: fileId,
           index: chunkIndex,
 
-          // The the logged-in user is always the source of uploaded chunks
+          // The logged-in user is always the source of uploaded chunks
           sourceUserId: null,
           md5: hash,
           size: data.length));

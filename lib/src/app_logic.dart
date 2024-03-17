@@ -990,15 +990,16 @@ class AppLogic {
     return AppLogicResult.ok;
   }
 
-  Future<void> updateAccountDetails(
+  Future<bool> updateAccountDetails(
       [AccountDetailsResponse? accountDetailsResponse]) async {
     accountDetailsResponse ??= await api.getAccountDetails();
 
     if (accountDetailsResponse != null) {
       await config.setUserEmail(accountDetailsResponse.email);
+      appState.accountDetails.value = accountDetailsResponse.toAccountDetails();
     }
 
-    appState.accountDetails.value = accountDetailsResponse?.toAccountDetails();
+    return accountDetailsResponse != null;
   }
 
   Future<AppLogicResult> sync(
@@ -1008,12 +1009,14 @@ class AppLogic {
     }
 
     return await syncMutex.protect(() async {
-      appState.isSynchronising.value = true;
-
       if (retrieveAccountDetails) {
         // Start by getting the account info
-        await updateAccountDetails();
+        if (!await updateAccountDetails()) {
+          return AppLogicResult.apiError;
+        }
       }
+
+      appState.isSynchronising.value = true;
 
       // TODO: test if quota permits
       // if (subscriptionActive.value) {
