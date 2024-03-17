@@ -75,7 +75,6 @@ class DBSchema {
         content_type TEXT,
         uploaded int DEFAULT 0 NOT NULL,
         downloaded int DEFAULT 0 NOT NULL,
-        downloaded_from_source_user int DEFAULT 0 NOT NULL,
         encryption_key TEXT,
         created TEXT,
         updated TEXT,

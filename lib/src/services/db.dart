@@ -1118,7 +1118,7 @@ class DBService {
 
     if (document is FileDocument) {
       final result = await db.rawQuery('''
-        SELECT f.downloaded_from_source_user
+        SELECT f.source_user_id
         FROM file f
         JOIN file_document fd ON fd.file_id = f.file_id
         WHERE fd.file_document_id = '${document.id}'
@@ -1126,7 +1126,7 @@ class DBService {
         AND f.deleted IS NULL
       ''');
 
-      return result.first['downloaded_from_source_user'] == 1;
+      return result.first['source_user_id'] != null;
     }
 
     return false;

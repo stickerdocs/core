@@ -15,7 +15,6 @@ class File extends DBModel {
   String? sourceUserId;
   bool uploaded;
   bool downloaded;
-  bool downloadedFromSourceUser;
 
   // Shadow fields
   String? _name;
@@ -32,7 +31,6 @@ class File extends DBModel {
   static const contentTypeKey = 'content_type';
   static const sourceUserIdKey = 'source_user_id';
   static const encryptionKeyKey = 'encryption_key';
-  static const downloadedFromSourceUserKey = 'downloaded_from_source_user';
 
   File({
     required this.name,
@@ -41,7 +39,6 @@ class File extends DBModel {
     required this.contentType,
     required this.uploaded,
     required this.downloaded,
-    this.downloadedFromSourceUser = false,
   }) {
     table = tableName;
     commit();
@@ -80,11 +77,6 @@ class File extends DBModel {
     // * uploaded
     // * downloaded
 
-    // Only add this if the flag is set, not every time we create a file!
-    if (downloadedFromSourceUser) {
-      changes[downloadedFromSourceUserKey] = downloadedFromSourceUser;
-    }
-
     populateCreatedAndUpdatedChanges(changes);
     return changes;
   }
@@ -107,8 +99,7 @@ class File extends DBModel {
         sha256: map[sha256Key],
         contentType: map[contentTypeKey],
         uploaded: (map['uploaded'] ?? 0) == 1,
-        downloaded: (map['downloaded'] ?? 0) == 1,
-        downloadedFromSourceUser: (map[downloadedFromSourceUserKey] ?? 0) == 1);
+        downloaded: (map['downloaded'] ?? 0) == 1);
 
     if (map[encryptionKeyKey] != null) {
       file.encryptionKey = base64ToUint8List(map[encryptionKeyKey]);

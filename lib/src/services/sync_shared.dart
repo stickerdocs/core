@@ -625,10 +625,6 @@ class SyncSharedService {
 
     await _fileService.uploadFile(file);
 
-    // Mark the file as downloaded from the source user
-    file.downloadedFromSourceUser = true;
-    await _db.save(file);
-
     // Save space on mobile devices once we have uploaded the file to our account
     if (isMobile) {
       await _logic.purgeFile(file);

@@ -137,8 +137,6 @@ void main() {
     final expectedEvents = data.stickerSnapshotEvents;
     expect(jsonEncode(fakeSyncService.capturedOutgoingEvents),
         jsonEncode(expectedEvents));
-
-    // verify(mockDB.save(any)).called(1);
   });
 
   test(
@@ -258,7 +256,6 @@ void main() {
     verify(mockDB.getSharedStickers()).called(1);
     verify(mockDB.getTrustedUsers()).called(1);
     verify(mockDB.getAllFileIds()).called(1);
-    //verifyNoMoreInteractions(mockDB);
   }
 
   test('Bob receives a shared sticker from Alice. Bob already has the file',
@@ -319,8 +316,6 @@ void main() {
     verify(mockFileService.downloadFile(data.file)).called(1);
     verify(mockFileService.uploadFile(data.file)).called(1);
 
-    expect(data.file.downloadedFromSourceUser, true);
-    verify(mockDB.save(data.file)).called(1);
     verify(mockDB.getFileById(data.file.id)).called(1);
 
     verifyNoUnnecessaryCalls();
