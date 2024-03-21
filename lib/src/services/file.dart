@@ -214,6 +214,8 @@ class FileService {
     final usingCompression = compressedData.length < data.length;
     final formattedData = BytesBuilder();
 
+    formattedData.add([0x73, 0x64, 0x78]); // Header is "sdx" signature
+
     if (usingCompression) {
       formattedData.add([0x01]);
       formattedData.add(Uint8List.fromList(compressedData));
@@ -282,7 +284,7 @@ class FileService {
     await _db.incrementFileChunkUploadCounter(fileChunk);
     await _refreshExpiredUploadUrl(fileChunk);
 
-    // Prevent man-in-the middle URL redirection at the SSL layer
+    // Validate URL
     if (!fileChunk.url!.startsWith(storageBaseUrl)) {
       return false;
     }
@@ -488,6 +490,11 @@ class FileService {
     final encryptedFileData =
         await _decryptFileFromDownload(encryptionKey, encryptedFilePath);
 
+    if (encryptedFileData == null) {
+      // TODO: deal with this corrupt file
+      return;
+    }
+
     // TODO: Verify file hash
 
     // Write to output data file
@@ -521,20 +528,32 @@ class FileService {
     return outputFilePath;
   }
 
-  Future<Uint8List> _decryptFileFromDownload(
+  Future<Uint8List?> _decryptFileFromDownload(
       Uint8List encryptionKey, String filePath) async {
     final file = io.File(filePath);
     final data = await file.readAsBytes();
 
     final decryptedData = await crypto.decryptFile(encryptionKey, data);
+    final compressionFlag = decryptedData[3];
+
+    // Verify the header starts with "sdx" followed by the compression flag
+    if (decryptedData[0] != 0x73 ||
+        decryptedData[1] != 0x64 ||
+        decryptedData[2] != 0x78 ||
+        compressionFlag > 0x01) {
+      // The file is corrupt
+      return null;
+    }
+
+    final fileData = decryptedData.sublist(4);
 
     // Was the data compressed?
-    if (decryptedData[0] == 0x01) {
-      final decompressedData = io.GZipCodec().decode(decryptedData.sublist(1));
+    if (compressionFlag == 0x01) {
+      final decompressedData = io.GZipCodec().decode(fileData);
       return Uint8List.fromList(decompressedData);
     }
 
-    return decryptedData.sublist(1);
+    return fileData;
   }
 
   Future<http.Response> processResponse(String method, String url,
