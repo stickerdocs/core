@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:flutter/foundation.dart';
@@ -1241,21 +1242,59 @@ class AppLogic {
     return newFile;
   }
 
-  Future<bool> reportHarmfulContent() async {
-    final todo = Uint8List.fromList([1, 2, 3]);
-    final harmfulContent = ReportHarmfulContent(
-        sharedByUserId: 'TODO',
-        fileId: 'TODO',
-        encryptedHarmfulContent: todo,
-        signedHarmfulContent: todo,
-        sha256: 'todo',
-        md5: 'todo',
-        sharedFileEncryptedPassword: 'todo');
-
-    if (!await _api.reportHarmfulContent(harmfulContent)) {
+  Future<bool> reportHarmfulContent(File file, String reason) async {
+    if (file.sourceUserId == null) {
       return false;
     }
-    return true;
+
+    final encryptionKey = await _db.getInitialEncryptionKeyForFile(file);
+
+    if (encryptionKey == null) {
+      return false;
+    }
+
+    final thisFileReEncryptedKey =
+        await crypto.encryptForReportingHarm(file.encryptionKey!);
+
+    if (thisFileReEncryptedKey == null) {
+      return false;
+    }
+
+    final sharedFileReEncryptedKey =
+        await crypto.encryptForReportingHarm(base64ToUint8List(encryptionKey));
+
+    if (sharedFileReEncryptedKey == null) {
+      return false;
+    }
+
+    // Create some additional file hashes
+    final ioFile = file.getFile();
+    final md5 = await CryptoService.md5File(ioFile);
+    final sha512 = await CryptoService.sha512File(ioFile);
+
+    final report = ReportHarmfulContent(
+        sharedByUserId: file.sourceUserId!,
+        fileId: file.id,
+        fileName: file.name ?? '',
+        reason: reason,
+        md5: md5,
+        sha256: file.sha256!,
+        sha512: sha512,
+        thisFileReEncryptedKey: thisFileReEncryptedKey,
+        sharedFileReEncryptedKey: sharedFileReEncryptedKey);
+
+    // Sign the request
+    report.signature =
+        await crypto.signData(stringToUint8List(json.encode(report)));
+
+    final success = await _api.reportHarmfulContent(report);
+
+    if (!success) {
+      return false;
+    }
+
+    //return await _deleteFile(file);
+    return false;
   }
 
   Future<bool> submitCrashReport(String report) async {

@@ -1131,4 +1131,23 @@ class DBService {
 
     return false;
   }
+
+  Future<String?> getInitialEncryptionKeyForFile(File file) async {
+    final db = await _db;
+
+    final result = await db.query(
+      'event',
+      columns: ['value'],
+      where: 'type = ? AND id = ? AND key = ?',
+      whereArgs: [file.table, file.id, File.encryptionKeyKey],
+      orderBy: 'timestamp',
+      limit: 1,
+    );
+
+    if (result.length != 1) {
+      return null;
+    }
+
+    return result.first['value'].toString();
+  }
 }

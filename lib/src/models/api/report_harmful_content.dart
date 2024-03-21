@@ -5,29 +5,45 @@ import 'package:stickerdocs_core/src/utils.dart';
 class ReportHarmfulContent {
   String sharedByUserId;
   String fileId;
-  Uint8List encryptedHarmfulContent;
-  Uint8List signedHarmfulContent;
-  String sha256;
+  String fileName;
+  String reason;
   String md5;
-  String sharedFileEncryptedPassword;
+  String sha256;
+  String sha512;
+  Uint8List thisFileReEncryptedKey;
+  Uint8List sharedFileReEncryptedKey;
+  String? signature;
 
   ReportHarmfulContent({
     required this.sharedByUserId,
     required this.fileId,
-    required this.encryptedHarmfulContent,
-    required this.signedHarmfulContent,
-    required this.sha256,
+    required this.fileName,
+    required this.reason,
     required this.md5,
-    required this.sharedFileEncryptedPassword,
+    required this.sha256,
+    required this.sha512,
+    required this.thisFileReEncryptedKey,
+    required this.sharedFileReEncryptedKey,
   });
 
-  Map<String, dynamic> toJson() => {
-        'shared_by_user_id': sharedByUserId,
-        'file_id': fileId,
-        'encrypted_harmful_content': uint8ListToBase64(encryptedHarmfulContent),
-        'signed_harmful_content': uint8ListToBase64(signedHarmfulContent),
-        'sha256': sha256,
-        'md5': md5,
-        'shared_file_encrypted_password': sharedFileEncryptedPassword,
-      };
+  Map<String, dynamic> toJson() {
+    var map = {
+      'shared_by_user_id': sharedByUserId,
+      'file_id': fileId,
+      'file_name': fileName,
+      'reason': reason,
+      'md5': md5,
+      'sha256': sha256,
+      'sha512': sha512,
+      'this_file_re_encrypted_key': uint8ListToBase64(thisFileReEncryptedKey),
+      'shared_file_re_encrypted_key':
+          uint8ListToBase64(sharedFileReEncryptedKey),
+    };
+
+    if (signature != null) {
+      map['signature'] = signature!;
+    }
+
+    return map;
+  }
 }

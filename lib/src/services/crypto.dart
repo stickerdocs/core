@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
@@ -174,10 +175,21 @@ class CryptoService {
     return hash.sha256.convert(message).toString();
   }
 
-  static Future<String> sha256File(io.File file) async {
-    final output = AccumulatorSink<hash.Digest>();
-    final input = hash.sha256.startChunkedConversion(output);
+  static Future<String> md5File(io.File file) async {
+    return hashFile(file, hash.md5);
+  }
 
+  static Future<String> sha256File(io.File file) async {
+    return hashFile(file, hash.sha256);
+  }
+
+  static Future<String> sha512File(io.File file) async {
+    return hashFile(file, hash.sha512);
+  }
+
+  static Future<String> hashFile(io.File file, hash.Hash h) async {
+    final output = AccumulatorSink<hash.Digest>();
+    final input = h.startChunkedConversion(output);
     final fileHandle = await file.open(mode: io.FileMode.read);
 
     Uint8List data;
