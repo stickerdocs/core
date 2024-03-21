@@ -13,6 +13,7 @@ export 'package:stickerdocs_core/src/utils.dart'
         formatInvitationToken,
         base64ToUint8List,
         platformName,
-        isoDateToStringNow;
+        isoDateToStringNow,
+        newUuid;
 
 export 'package:stickerdocs_core/src/validation.dart' show isUuidValid;
