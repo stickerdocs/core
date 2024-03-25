@@ -591,11 +591,11 @@ class CryptoService {
       String recipientName,
       String recipientEmail,
       String passphrase) {
-    // 32 bytes for key and 16 bytes for salt
-    final saltAndKey = _deriveKey(passphrase);
-
     // 351 bytes
     final invitationBytes = stringToUint8List(invitation.serialize());
+
+    // 32 bytes for key and 16 bytes for salt
+    final saltAndKey = _deriveKey(passphrase);
 
     // 391 bytes
     final encryptedInvitation =
