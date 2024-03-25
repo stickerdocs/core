@@ -77,4 +77,8 @@ class TrustedUser extends DBModel {
       return TrustedUser.fromMap(maps[i]);
     });
   }
+
+  String formatName() {
+    return '$name ($email)';
+  }
 }
