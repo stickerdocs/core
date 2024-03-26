@@ -75,6 +75,7 @@ class DBSchema {
         content_type TEXT,
         uploaded int DEFAULT 0 NOT NULL,
         downloaded int DEFAULT 0 NOT NULL,
+        not_found int DEFAULT 0 NOT NULL,
         encryption_key TEXT,
         created TEXT,
         updated TEXT,
@@ -109,6 +110,7 @@ class DBSchema {
         url_created TEXT,
         attempt INT DEFAULT 0 NOT NULL,
         downloaded int DEFAULT 0 NOT NULL,
+        not_found int DEFAULT 0 NOT NULL,
         PRIMARY KEY(file_id, chunk_index)
       )''');
   }

@@ -347,6 +347,10 @@ class APIService {
 
     final response = await sendGet('file/$fileId', additionalHeaders: headers);
 
+    if (response.statusCode == HttpStatus.notFound) {
+      return FileNotFoundFileGetResponse.create();
+    }
+
     if (response.statusCode == HttpStatus.ok) {
       return FileGetResponse.deserialize(response.body, fileId, sourceUserId);
     }
@@ -364,6 +368,10 @@ class APIService {
     final response = await sendGet(
         'file/${fileChunk.fileId}/chunk/${fileChunk.index}',
         additionalHeaders: headers);
+
+    if (response.statusCode == HttpStatus.notFound) {
+      return FileChunk.notFoundSignature;
+    }
 
     if (response.statusCode == HttpStatus.ok) {
       return response.body;

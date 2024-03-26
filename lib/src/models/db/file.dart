@@ -15,6 +15,7 @@ class File extends DBModel {
   String? sourceUserId;
   bool uploaded;
   bool downloaded;
+  bool notFound;
 
   // Shadow fields
   String? _name;
@@ -39,6 +40,7 @@ class File extends DBModel {
     required this.contentType,
     required this.uploaded,
     required this.downloaded,
+    required this.notFound,
   }) {
     table = tableName;
     commit();
@@ -76,6 +78,7 @@ class File extends DBModel {
     // local-only fields, don't sync these:
     // * uploaded
     // * downloaded
+    // * not_found
 
     populateCreatedAndUpdatedChanges(changes);
     return changes;
@@ -99,7 +102,8 @@ class File extends DBModel {
         sha256: map[sha256Key],
         contentType: map[contentTypeKey],
         uploaded: (map['uploaded'] ?? 0) == 1,
-        downloaded: (map['downloaded'] ?? 0) == 1);
+        downloaded: (map['downloaded'] ?? 0) == 1,
+        notFound: (map['not_found'] ?? 0) == 1);
 
     if (map[encryptionKeyKey] != null) {
       file.encryptionKey = base64ToUint8List(map[encryptionKeyKey]);

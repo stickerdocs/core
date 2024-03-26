@@ -16,6 +16,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:stickerdocs_core/src/app_logic.dart';
 import 'package:stickerdocs_core/src/main.dart';
+import 'package:stickerdocs_core/src/models/api/file_get_response.dart';
 import 'package:stickerdocs_core/src/models/db/file.dart';
 import 'package:stickerdocs_core/src/models/file_chunk.dart';
 import 'package:stickerdocs_core/src/models/api/file_put_request.dart';
@@ -185,7 +186,6 @@ class FileService {
     }
 
     await _refreshFileChunkUploadUrl(fileChunk);
-    await _db.updateFileChunkUploadUrls([fileChunk]);
   }
 
   bool _isFileChunkUrlValid(FileChunk fileChunk) {
@@ -204,7 +204,7 @@ class FileService {
     if (url != null) {
       fileChunk.url = url;
       fileChunk.urlCreated = isoDateNow();
-      _db.updateFileChunkUploadUrl(fileChunk);
+      await _db.updateFileChunkUploadUrls([fileChunk]);
     }
   }
 
@@ -308,7 +308,7 @@ class FileService {
     if (response.statusCode != 200) {
       // Clear the URL to trigger a a fresh S3 URL
       fileChunk.url = null;
-      await _db.updateFileChunkUploadUrl(fileChunk);
+      await _db.updateFileChunkUploadUrls([fileChunk]);
       return false;
     }
 
@@ -396,6 +396,11 @@ class FileService {
 
     final fileResponse = await _api.getFile(fileId, sourceUserId);
 
+    if (fileResponse is FileNotFoundFileGetResponse) {
+      await _db.markFileNotFound(fileId);
+      return null;
+    }
+
     if (fileResponse == null) {
       return null;
     }
@@ -418,16 +423,20 @@ class FileService {
     }
 
     await _refreshFileChunkDownloadUrl(fileChunk);
-    await _db.updateFileChunkUploadUrls([fileChunk]);
   }
 
   Future<void> _refreshFileChunkDownloadUrl(FileChunk fileChunk) async {
     final url = await _api.getFileChunk(fileChunk);
 
+    if (url == FileChunk.notFoundSignature) {
+      await _db.markFileChunkDownloadNotFound(fileChunk);
+      return;
+    }
+
     if (url != null) {
       fileChunk.url = url;
       fileChunk.urlCreated = isoDateNow();
-      _db.updateFileChunkDownloadUrl(fileChunk);
+      await _db.updateFileChunkDownloadUrl(fileChunk);
     }
   }
 

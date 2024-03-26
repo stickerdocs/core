@@ -72,6 +72,7 @@ final file = File(
   contentType: 'file.content_type',
   uploaded: false,
   downloaded: false,
+  notFound: false,
 );
 
 StickerFileDocument stickerFileDocument = StickerFileDocument(
@@ -121,6 +122,7 @@ final privateFile = File(
   contentType: 'private.file.content_type',
   uploaded: true,
   downloaded: false,
+  notFound: false,
 );
 
 FileDocument? _privateFileDocument;

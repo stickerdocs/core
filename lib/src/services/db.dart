@@ -478,7 +478,7 @@ class DBService {
 
     final result = await db.query(
       'file_chunk_download',
-      where: 'file_id = ?',
+      where: 'not_found = 0 AND file_id = ?',
       whereArgs: [fileId],
       orderBy: 'chunk_index',
     );
@@ -486,17 +486,16 @@ class DBService {
     return FileChunk.fromMaps(result);
   }
 
-  Future<void> updateFileChunkUploadUrl(FileChunk fileChunk) async {
+  Future<void> markFileNotFound(String fileId) async {
     final db = await _db;
 
     await db.update(
-      'file_chunk_upload',
+      'file',
       {
-        'url': fileChunk.url,
-        'url_created': isoDateToString(fileChunk.urlCreated!),
+        'not_found': 1,
       },
-      where: 'file_id = ? AND chunk_index = ?',
-      whereArgs: [fileChunk.fileId, fileChunk.index],
+      where: 'file_id = ?',
+      whereArgs: [fileId],
     );
   }
 
@@ -527,6 +526,16 @@ class DBService {
       where: 'file_id = ? AND chunk_index = ?',
       whereArgs: [fileChunk.fileId, fileChunk.index],
     );
+  }
+
+  Future<void> markFileChunkDownloadNotFound(FileChunk fileChunk) async {
+    final db = await _db;
+
+    // If any chunk cannot be downloaded consider the whole file gone
+    await db.delete('file_chunk_download',
+        where: 'file_id = ?', whereArgs: [fileChunk.fileId]);
+
+    await markFileNotFound(fileChunk.fileId);
   }
 
   Future<void> incrementFileChunkDownloadCounter(FileChunk fileChunk) async {
@@ -589,7 +598,7 @@ class DBService {
 
     final result = await db.query('file',
         where:
-            'uploaded = 0 AND downloaded = 0 AND deleted IS NULL AND encryption_key IS NOT NULL');
+            'uploaded = 0 AND downloaded = 0 AND not_found = 0 AND deleted IS NULL AND encryption_key IS NOT NULL');
 
     return File.fromMaps(result);
   }

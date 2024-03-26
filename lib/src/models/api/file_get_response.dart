@@ -18,7 +18,6 @@ class FileGetResponse {
       required this.fileChunks,
       required this.signature});
 
-  // TODO: https://stackoverflow.com/questions/60860270/how-to-get-json-array-in-flutter-dart
   FileGetResponse.fromJson(
       Map<String, dynamic> map, String fileId, String? sourceUserId)
       : created = fromIsoDateString(map['created'])!,
@@ -38,5 +37,23 @@ class FileGetResponse {
       String data, String fileId, String? sourceUserId) {
     Map<String, dynamic> decoded = jsonDecode(data);
     return FileGetResponse.fromJson(decoded, fileId, sourceUserId);
+  }
+}
+
+class FileNotFoundFileGetResponse extends FileGetResponse {
+  FileNotFoundFileGetResponse({
+    required super.created,
+    required super.size,
+    required super.fileChunks,
+    required super.signature,
+  });
+
+  static FileNotFoundFileGetResponse create() {
+    return FileNotFoundFileGetResponse(
+      created: DateTime.now(),
+      size: 0,
+      fileChunks: [],
+      signature: Uint8List.fromList([0x00]),
+    );
   }
 }

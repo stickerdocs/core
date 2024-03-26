@@ -10,7 +10,10 @@ class FileChunk {
   int? size;
   bool uploaded = false;
   bool downloaded = false;
+  bool notFound = false;
   int attempt = 0;
+
+  static const String notFoundSignature = 'Not Found';
 
   FileChunk({
     required this.fileId,
@@ -35,6 +38,7 @@ class FileChunk {
 
     fileChunk.uploaded = (map['uploaded'] ?? 0) == 1;
     fileChunk.downloaded = (map['downloaded'] ?? 0) == 1;
+    fileChunk.notFound = (map['not_found'] ?? 0) == 1;
     fileChunk.attempt = map['attempt'] ?? 0;
 
     return fileChunk;

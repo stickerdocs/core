@@ -1234,7 +1234,8 @@ class AppLogic {
         sha256: sha256,
         contentType: await getMimeType(file, fileName),
         uploaded: false,
-        downloaded: true);
+        downloaded: true,
+        notFound: false);
 
     // Save file data locally
     await file.copy(newFile.getPath());
