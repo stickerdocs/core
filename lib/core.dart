@@ -17,3 +17,5 @@ export 'package:stickerdocs_core/src/utils.dart'
         newUuid;
 
 export 'package:stickerdocs_core/src/validation.dart' show isUuidValid;
+
+export 'package:stickerdocs_core/src/svg_security.dart' show isSafeSVG;

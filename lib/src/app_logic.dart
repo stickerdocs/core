@@ -620,9 +620,6 @@ class AppLogic {
 
     if (save) {
       await saveSticker(sticker);
-
-      // Call this to update the sticker list but don't await
-      searchStickers();
     }
 
     return sticker;
@@ -674,6 +671,9 @@ class AppLogic {
 
   Future<void> saveSticker(Sticker sticker) async {
     await _db.save(sticker);
+
+    // Call this to update the sticker list but don't await
+    searchStickers();
   }
 
   Future<AppLogicResult> sendInvitation(

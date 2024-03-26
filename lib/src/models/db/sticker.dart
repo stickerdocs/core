@@ -78,7 +78,11 @@ class Sticker extends DBModel {
     return uint8ListToBase64(_svg!);
   }
 
-  Uri getSVGDataUri() {
+  Uri? getSVGDataUri() {
+    if (_svg == null) {
+      return null;
+    }
+    
     // This is the regular B64-encoding, not the URL-safe one
     // Do not be tempted to refactor with getBase64Svg()
     final base64StickerData = base64Encode(_svg!).toString();
