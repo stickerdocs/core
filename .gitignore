@@ -34,3 +34,5 @@ coverage/
 
 # Ignore Mockito mocks
 *.mocks.dart
+
+.flutter-plugins-dependencies
