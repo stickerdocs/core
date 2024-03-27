@@ -14,7 +14,8 @@ export 'package:stickerdocs_core/src/utils.dart'
         base64ToUint8List,
         platformName,
         isoDateToStringNow,
-        newUuid;
+        newUuid,
+        stringToUint8List;
 
 export 'package:stickerdocs_core/src/validation.dart' show isUuidValid;
 
