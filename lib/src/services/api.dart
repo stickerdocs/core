@@ -347,7 +347,11 @@ class APIService {
 
     final response = await sendGet('file/$fileId', additionalHeaders: headers);
 
-    if (response.statusCode == HttpStatus.notFound) {
+    // Check this X-Sanity header to be sure if a 404 occurs it really is because the file was not found
+    // rather than some other server/appliance/misconfiguration which could cause clients to incorrectly
+    // consider files have been removed when they have not.
+    if (response.statusCode == HttpStatus.notFound &&
+        response.headers['X-Sanity'] == 'StickerDocs') {
       return FileNotFoundFileGetResponse.create();
     }
 
@@ -369,7 +373,11 @@ class APIService {
         'file/${fileChunk.fileId}/chunk/${fileChunk.index}',
         additionalHeaders: headers);
 
-    if (response.statusCode == HttpStatus.notFound) {
+    // Check this X-Sanity header to be sure if a 404 occurs it really is because the file was not found
+    // rather than some other server/appliance/misconfiguration which could cause clients to incorrectly
+    // consider files have been removed when they have not.
+    if (response.statusCode == HttpStatus.notFound &&
+        response.headers['X-Sanity'] == 'StickerDocs') {
       return FileChunk.notFoundSignature;
     }
 
