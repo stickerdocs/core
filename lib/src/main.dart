@@ -29,6 +29,7 @@ class CoreConfig {
   final Uint8List stickerDocsPublicKey;
   final Uint8List reportHarmPublicKey;
   final String storageBaseUrl;
+  final bool downgradeConfigSecurity;
 
   CoreConfig({
     required this.dataPath,
@@ -39,6 +40,7 @@ class CoreConfig {
     required this.stickerDocsPublicKey,
     required this.reportHarmPublicKey,
     required this.storageBaseUrl,
+    required this.downgradeConfigSecurity,
   });
 }
 
@@ -57,8 +59,8 @@ void registerSingletons(CoreConfig config) {
   GetIt.I.registerLazySingleton(() => DBService());
   GetIt.I.registerLazySingleton(() => ConfigService());
   GetIt.I.registerLazySingleton(() => CryptoEngine());
-  GetIt.I.registerLazySingleton(() =>
-      CryptoService(config.stickerDocsPublicKey, config.reportHarmPublicKey));
+  GetIt.I.registerLazySingleton(() => CryptoService(config.stickerDocsPublicKey,
+      config.reportHarmPublicKey, config.downgradeConfigSecurity));
   GetIt.I.registerLazySingleton(() => APIService(
         config.apiBaseUrl,
         config.appName,

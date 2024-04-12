@@ -37,6 +37,7 @@ class SaltAndKey {
 class CryptoService {
   Uint8List stickerDocsPublicKey;
   Uint8List reportHarmPublicKey;
+  bool downgradeConfigSecurity;
   final CryptoEngine _engine = GetIt.I.get<CryptoEngine>();
   String? _ephemeralPassword;
   KeyPair? _ephemeralAccountKeyPairValue;
@@ -46,7 +47,8 @@ class CryptoService {
 
   SecureKey? _configKeyInstance;
 
-  CryptoService(this.stickerDocsPublicKey, this.reportHarmPublicKey);
+  CryptoService(this.stickerDocsPublicKey, this.reportHarmPublicKey,
+      this.downgradeConfigSecurity);
 
   Future<SecureKey> get _configKey async {
     if (_configKeyInstance == null) {
@@ -69,6 +71,15 @@ class CryptoService {
     const storageKey = 'config_key';
 
     var keyString = await storage.read(key: storageKey);
+
+    if (downgradeConfigSecurity) {
+      // Until I can get the entitlements/provisioning profile to work on macOS (non-store), I can't see any other way forward
+      // <key>keychain-access-groups</key>
+      // <array>
+      // 	<string>$(AppIdentifierPrefix)com.stickerdocs.app</string>
+      // </array>
+      keyString = 'dVPabQhrX7FOPElcmxVvIuSkocWVBjg5VeOzcbXbm9c=';
+    }
 
     if (keyString == null) {
       _configKeyInstance = _engine.generateSecretBoxSecureKey();

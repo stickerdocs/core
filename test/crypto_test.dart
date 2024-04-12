@@ -53,7 +53,7 @@ void main() {
     GetIt.I.registerSingleton<ConfigService>(FakeConfigService());
     GetIt.I.registerSingleton<CryptoEngine>(MockCryptoEngine());
     GetIt.I.registerSingleton<CryptoService>(
-        CryptoService(stickerDocsPublicKey, reportHarmPublicKey));
+        CryptoService(stickerDocsPublicKey, reportHarmPublicKey, false));
 
     service = GetIt.I.get<CryptoService>();
     mockEngine = GetIt.I.get<CryptoEngine>();
