@@ -10,7 +10,7 @@ class ClockService {
       return _canonicalTime!;
     }
 
-    // We only need the first 8 chars of the client ID
+    // We only need the first 8 chars of the client ID, this should have sufficient randomness to not have colliding clients
     formattedClientId = (await config.clientId).substring(0, 8);
 
     _canonicalTime = Hlc.now(formattedClientId!);
