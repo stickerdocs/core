@@ -4,8 +4,10 @@ import 'package:stickerdocs_core/models.dart';
 
 class AppState {
   final documents = ValueNotifier<List<Document>>([]);
+  final documentCount = ValueNotifier<int>(0);
   final documentSearchController = TextEditingController();
   final stickers = ValueNotifier<List<Sticker>>([]);
+  final stickerCount = ValueNotifier<int>(0);
   final stickerSearchController = TextEditingController();
   final sharedStickers = ValueNotifier<List<SharedSticker>>([]);
   final invitedUsers = ValueNotifier<List<InvitedUser>>([]);

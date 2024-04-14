@@ -116,11 +116,15 @@ class AppLogic {
   Future<void> searchDocuments() async {
     appState.documents.value =
         await _db.searchDocuments(appState.documentSearchController.text);
+
+    appState.documentCount.value = await _db.countAllDocuments();
   }
 
   Future<void> searchStickers() async {
     appState.stickers.value =
         await _db.searchStickers(appState.stickerSearchController.text);
+
+    appState.stickerCount.value = await _db.countAllStickers();
   }
 
   Future<void> populateInvitedUsers() async {

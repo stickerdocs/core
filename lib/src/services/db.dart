@@ -730,6 +730,19 @@ class DBService {
     return result.map((file) => file['file_id'].toString());
   }
 
+  Future<int> countAllDocuments() async {
+    final db = await _db;
+
+    final fileDocumentCount = await db.rawQuery(
+        'SELECT COUNT(*) count FROM file_document WHERE deleted IS NULL');
+
+    final blockDocumentCount = await db.rawQuery(
+        'SELECT COUNT(*) count FROM block_document WHERE deleted IS NULL');
+
+    return (int.tryParse(fileDocumentCount.first['count'].toString()) ?? 0) +
+        (int.tryParse(blockDocumentCount.first['count'].toString()) ?? 0);
+  }
+
   Future<List<Document>> searchDocuments(String? query) async {
     final documents = <Document>[];
     final db = await _db;
@@ -752,6 +765,15 @@ class DBService {
     documents.addAll(BlockDocument.fromMaps(blockDocuments));
 
     return documents;
+  }
+
+  Future<int> countAllStickers() async {
+    final db = await _db;
+
+    final stickerCount = await db
+        .rawQuery('SELECT COUNT(*) count FROM sticker WHERE deleted IS NULL');
+
+    return int.tryParse(stickerCount.first['count'].toString()) ?? 0;
   }
 
   Future<List<Sticker>> searchStickers(String? query) async {
