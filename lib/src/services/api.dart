@@ -41,6 +41,7 @@ class APIService {
   static const _sourceUserIdHeader = 'Source-User-Id';
   static const _requestIdHeader = 'Request-Id';
   static const _signatureHeader = 'Signature';
+  static const _sanityResponseHeader = 'x-sanity'; // Note this X-Sanity response header is lower-case
 
   APIService(this.baseUrl, this.appName, this.appVersion);
 
@@ -347,11 +348,11 @@ class APIService {
 
     final response = await sendGet('file/$fileId', additionalHeaders: headers);
 
-    // Check this X-Sanity header to be sure if a 404 occurs it really is because the file was not found
+    // Check this x-sanity (lower-case) response header to be sure if a 404 occurs it really is because the file was not found
     // rather than some other server/appliance/misconfiguration which could cause clients to incorrectly
     // consider files have been removed when they have not.
     if (response.statusCode == HttpStatus.notFound &&
-        response.headers['X-Sanity'] == 'StickerDocs') {
+        response.headers[_sanityResponseHeader] == 'StickerDocs') {
       return FileNotFoundFileGetResponse.create();
     }
 
@@ -373,11 +374,11 @@ class APIService {
         'file/${fileChunk.fileId}/chunk/${fileChunk.index}',
         additionalHeaders: headers);
 
-    // Check this X-Sanity header to be sure if a 404 occurs it really is because the file was not found
+    // Check this x-sanity (lower-case) response header to be sure if a 404 occurs it really is because the file was not found
     // rather than some other server/appliance/misconfiguration which could cause clients to incorrectly
     // consider files have been removed when they have not.
     if (response.statusCode == HttpStatus.notFound &&
-        response.headers['X-Sanity'] == 'StickerDocs') {
+        response.headers[_sanityResponseHeader] == 'StickerDocs') {
       return FileChunk.notFoundSignature;
     }
 
