@@ -699,7 +699,7 @@ class CryptoService {
     // e.g. GET/account
     messageToSign.add(stringToUint8List(url));
 
-    // e.g. {'Client-Id':'8a530d02-babf-47c4-8b20-93fc993ac6c6','User-Agent':'SD-App macOS/1','User-Id':'783f9540-f8bf-4669-9819-53f3982a01f0'}
+    // e.g. {'Client-Id':'F1JnSfhBrJy5ZvNkRczHYB','User-Agent':'SD-App macOS/1.0.0.1','User-Id':'PgzR7uPEcVSB2S1AMWmyaT'}
     messageToSign.add(stringToUint8List(headers));
 
     // Also sign the body if there is one

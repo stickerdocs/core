@@ -5,9 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart';
-import 'package:uuid/data.dart';
-import 'package:uuid/rng.dart';
-import 'package:uuid/uuid.dart';
+import 'package:nanoid/nanoid.dart';
 
 final isDesktop = Platform.isWindows || Platform.isLinux || Platform.isMacOS;
 final isMobile = !isDesktop;
@@ -37,14 +35,10 @@ String get platformName {
 }
 
 const _base64Codec = Base64Codec.urlSafe();
-Uuid? _uuid;
-V4Options? _uuidConfig;
+const String defaultFilename = 'Untitled';
 
 late Logger logger;
 bool _loggerInitialised = false;
-
-const String defaultFilename = 'Untitled';
-
 
 void configureLogging(String dataPath) {
   if (_loggerInitialised) {
@@ -67,7 +61,6 @@ void configureLogging(String dataPath) {
 
   _loggerInitialised = true;
 }
-
 
 Uint8List appendToList(List<int> list1, List<int> list2) {
   var result = BytesBuilder();
@@ -98,10 +91,8 @@ Uint8List base64ToUint8List(String input) {
 }
 
 String newUuid() {
-  _uuid ??= const Uuid();
-  _uuidConfig ??= V4Options(null, CryptoRNG());
-
-  return _uuid!.v4(config: _uuidConfig);
+  return customAlphabet(
+      '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz', 22);
 }
 
 DateTime isoDateNow() {

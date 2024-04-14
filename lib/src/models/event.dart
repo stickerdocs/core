@@ -35,9 +35,12 @@ class Event {
       };
 
   static List<Event> fromMaps(List<Map<String, dynamic>> maps) {
-    return List.generate(maps.length, (item) {
-      return Event.fromMap(maps[item]);
-    });
+    return List.generate(
+      maps.length,
+      (item) {
+        return Event.fromMap(maps[item]);
+      },
+    );
   }
 
   static List<Event> deserialize(String data) {

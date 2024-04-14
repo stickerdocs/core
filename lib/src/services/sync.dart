@@ -227,7 +227,7 @@ class SyncService {
   }
 
   bool isIncomingEventValid(Event incomingEvent) {
-    if (!isUuidValid(incomingEvent.id)) {
+    if (!isSDIDValid(incomingEvent.id)) {
       logger.w(
           'Ignoring incoming event of type ${incomingEvent.type} due to invalid ID: \'${incomingEvent.id}\'');
       return false;
