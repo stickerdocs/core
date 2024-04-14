@@ -17,13 +17,23 @@ class EventFile {
     required this.fileEncryptedKey,
   });
 
-  Map<String, dynamic> toJson() => {
-        'first_timestamp': firstTimestamp,
-        'file_id': fileId,
-        'encrypted_key': uint8ListToBase64(fileEncryptedKey),
-        'file_ids_to_share': fileIdsToShare,
-        'file_ids_to_unshare': fileIdsToUnshare,
-      };
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'first_timestamp': firstTimestamp,
+      'file_id': fileId,
+      'encrypted_key': uint8ListToBase64(fileEncryptedKey),
+    };
+
+    if (fileIdsToShare.isNotEmpty) {
+      map['file_ids_to_share'] = fileIdsToShare;
+    }
+
+    if (fileIdsToUnshare.isNotEmpty) {
+      map['file_ids_to_unshare'] = fileIdsToUnshare;
+    }
+
+    return map;
+  }
 
   EventFile.fromJson(Map<String, dynamic> map)
       : firstTimestamp = map['first_timestamp'],
