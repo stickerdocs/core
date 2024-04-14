@@ -27,7 +27,7 @@ class ReportHarmfulContent {
   });
 
   Map<String, dynamic> toJson() {
-    var map = {
+    final map = {
       'shared_by_user_id': sharedByUserId,
       'file_id': fileId,
       'file_name': fileName,

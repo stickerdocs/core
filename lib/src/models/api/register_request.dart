@@ -27,7 +27,7 @@ class RegisterRequest {
       required this.token});
 
   Map<String, dynamic> toJson() {
-    var map = {
+    final map = {
       'name': name,
       'email': email,
       'auth_public_key': uint8ListToBase64(authPublicKey),

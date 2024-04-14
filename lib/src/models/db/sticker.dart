@@ -24,7 +24,7 @@ class Sticker extends DBModel {
 
   @override
   Map<String, dynamic> changeset() {
-    var changes = <String, dynamic>{};
+    final changes = <String, dynamic>{};
 
     if (isNew || name != _name) {
       changes['name'] = name;
@@ -51,7 +51,7 @@ class Sticker extends DBModel {
   }
 
   static Sticker fromMap(Map<String, dynamic> map) {
-    var sticker = Sticker(name: map['name']);
+    final sticker = Sticker(name: map['name']);
 
     sticker.style = map['style'];
 
@@ -82,7 +82,7 @@ class Sticker extends DBModel {
     if (_svg == null) {
       return null;
     }
-    
+
     // This is the regular B64-encoding, not the URL-safe one
     // Do not be tempted to refactor with getBase64Svg()
     final base64StickerData = base64Encode(_svg!).toString();

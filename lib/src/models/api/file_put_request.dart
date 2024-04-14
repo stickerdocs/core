@@ -16,7 +16,7 @@ class FilePutRequest {
   });
 
   Map<String, dynamic> toJson() {
-    var map = {
+    final map = {
       'file_id': fileId,
       'created': isoDateToString(created),
       'size': size,

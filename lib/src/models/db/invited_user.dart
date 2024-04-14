@@ -30,7 +30,7 @@ class InvitedUser extends DBModel {
 
   @override
   Map<String, dynamic> changeset() {
-    var changes = <String, dynamic>{};
+    final changes = <String, dynamic>{};
 
     if (isNew || stickerId != _stickerId) {
       changes['sticker_id'] = stickerId;
@@ -69,7 +69,7 @@ class InvitedUser extends DBModel {
   }
 
   static InvitedUser fromMap(Map<String, dynamic> map) {
-    var invitation = InvitedUser(
+    final invitation = InvitedUser(
       stickerId: map['sticker_id'],
       name: map['name'],
       email: map['email'],

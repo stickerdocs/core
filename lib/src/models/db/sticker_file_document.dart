@@ -19,7 +19,7 @@ class StickerFileDocument extends DBModel {
 
   @override
   Map<String, dynamic> changeset() {
-    var changes = <String, dynamic>{};
+    final changes = <String, dynamic>{};
 
     if (isNew || stickerId != _stickerId) {
       changes[stickerIdKey] = stickerId;

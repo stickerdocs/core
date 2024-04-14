@@ -250,7 +250,7 @@ class DBService {
     final batch = (await _db).batch();
 
     // Mark outgoing events as uploaded
-    for (var event in outgoingEvents) {
+    for (final event in outgoingEvents) {
       batch.update('event', {'remote': 1},
           where:
               'remote = 0 AND timestamp = ? AND type = ? AND id = ? AND key = ?',
@@ -269,7 +269,7 @@ class DBService {
     final batch = (await _db).batch();
 
     await syncMutex.protect(() async {
-      for (var event in events) {
+      for (final event in events) {
         _addEvent(
           batch,
           event.timestamp,
@@ -312,7 +312,7 @@ class DBService {
 
     final batch = db.batch();
 
-    for (var tableName in tablesAndIds.keys) {
+    for (final tableName in tablesAndIds.keys) {
       var idsToCreate = tablesAndIds[tableName]!;
       var existingEventsQuery =
           DBSchema.getExistingEventsQuery(tableName, idsToCreate);
@@ -332,7 +332,7 @@ class DBService {
       }
 
       // Update DB from events
-      for (var event
+      for (final event
           in newEvents.where((event) => event['type'] == tableName)) {
         bool ignore = false;
 
@@ -386,7 +386,7 @@ class DBService {
       List<Map<String, Object?>> events) {
     Map<String, List<String>> map = <String, List<String>>{};
 
-    for (var element in events) {
+    for (final element in events) {
       String type = element['type'] as String;
       String id = element['id'] as String;
 
@@ -405,7 +405,7 @@ class DBService {
   Future<void> addFileChunkUploadEntries(List<FileChunk> fileChunks) async {
     final batch = (await _db).batch();
 
-    for (var fileChunk in fileChunks) {
+    for (final fileChunk in fileChunks) {
       batch.insert('file_chunk_upload', {
         'file_id': fileChunk.fileId,
         'chunk_index': fileChunk.index,
@@ -421,15 +421,18 @@ class DBService {
       List<FileChunk> fileChunks, String? sourceUserId) async {
     final batch = (await _db).batch();
 
-    for (var fileChunk in fileChunks) {
-      batch.insert('file_chunk_download', {
-        'file_id': fileChunk.fileId,
-        'chunk_index': fileChunk.index,
-        'source_user_id': sourceUserId,
-        'md5': fileChunk.md5,
-        'url': fileChunk.url,
-        'url_created': isoDateToString(fileChunk.urlCreated!),
-      });
+    for (final fileChunk in fileChunks) {
+      batch.insert(
+        'file_chunk_download',
+        {
+          'file_id': fileChunk.fileId,
+          'chunk_index': fileChunk.index,
+          'source_user_id': sourceUserId,
+          'md5': fileChunk.md5,
+          'url': fileChunk.url,
+          'url_created': isoDateToString(fileChunk.urlCreated!),
+        },
+      );
     }
 
     await batch.commit(noResult: true);
@@ -438,7 +441,7 @@ class DBService {
   Future<void> updateFileChunkUploadUrls(List<FileChunk> fileChunks) async {
     final batch = (await _db).batch();
 
-    for (var fileChunk in fileChunks) {
+    for (final fileChunk in fileChunks) {
       batch.update(
           'file_chunk_upload',
           {

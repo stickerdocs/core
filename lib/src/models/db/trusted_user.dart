@@ -29,7 +29,7 @@ class TrustedUser extends DBModel {
 
   @override
   Map<String, dynamic> changeset() {
-    var changes = <String, dynamic>{};
+    final changes = <String, dynamic>{};
 
     if (isNew || userId != _userId) {
       changes['user_id'] = userId;
@@ -61,7 +61,7 @@ class TrustedUser extends DBModel {
   }
 
   static TrustedUser fromMap(Map<String, dynamic> map) {
-    var trustedUser = TrustedUser(
+    final trustedUser = TrustedUser(
       userId: map['user_id'],
       name: map['name'],
       email: map['email'],

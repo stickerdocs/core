@@ -63,7 +63,7 @@ void configureLogging(String dataPath) {
 }
 
 Uint8List appendToList(List<int> list1, List<int> list2) {
-  var result = BytesBuilder();
+  final result = BytesBuilder();
   result.add(list1);
   result.add(list2);
   return result.toBytes();

@@ -19,7 +19,7 @@ class FileDocument extends Document implements DBModel {
 
   @override
   Map<String, dynamic> changeset() {
-    var changes = <String, dynamic>{};
+    final changes = <String, dynamic>{};
 
     if (isNew || fileId != _fileId) {
       changes[fileIdKey] = fileId;

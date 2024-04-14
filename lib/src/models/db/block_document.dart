@@ -17,7 +17,7 @@ class BlockDocument extends Document implements DBModel {
 
   @override
   Map<String, dynamic> changeset() {
-    var changes = <String, dynamic>{};
+    final changes = <String, dynamic>{};
 
     if (isNew || blocks != _blocks) {
       changes[blocksKey] = blocks;

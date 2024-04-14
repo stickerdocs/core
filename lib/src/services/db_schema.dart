@@ -5,7 +5,7 @@ const latestDatabaseVersion = 1;
 
 class DBSchema {
   Future<void> create(Database db, int version) async {
-    var batch = db.batch();
+    final batch = db.batch();
     _createConfigTableV1(batch);
     _createEventTableV1(batch);
     _createFileTableV1(batch);
@@ -26,7 +26,7 @@ class DBSchema {
   }
 
   Future<void> upgrade(Database db, int oldVersion, int newVersion) async {
-    var batch = db.batch();
+    final batch = db.batch();
 
     if (oldVersion == 1) {
       // TODO: implement when we have migrations to perform

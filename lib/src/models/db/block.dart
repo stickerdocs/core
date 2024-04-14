@@ -39,7 +39,7 @@ class Block extends DBModel {
 
   @override
   Map<String, dynamic> changeset() {
-    var changes = <String, dynamic>{};
+    final changes = <String, dynamic>{};
 
     if (isNew || type != _type) {
       changes[typeKey] = type.format();
@@ -61,7 +61,7 @@ class Block extends DBModel {
   }
 
   static Block fromMap(Map<String, dynamic> map) {
-    var block = Block(type: _blockTypeFromString(map[typeKey]));
+    final block = Block(type: _blockTypeFromString(map[typeKey]));
     block.data = map[dataKey];
 
     DBModel.mapBase(block, map);

@@ -48,7 +48,7 @@ class File extends DBModel {
 
   @override
   Map<String, dynamic> changeset() {
-    var changes = <String, dynamic>{};
+    final changes = <String, dynamic>{};
 
     if (isNew && name != null || name != _name) {
       changes[nameKey] = name;
@@ -96,7 +96,7 @@ class File extends DBModel {
   }
 
   static File fromMap(Map<String, dynamic> map) {
-    var file = File(
+    final file = File(
         name: map[nameKey],
         size: map[sizeKey],
         sha256: map[sha256Key],

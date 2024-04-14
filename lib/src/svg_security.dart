@@ -17,7 +17,7 @@ bool isSafeSVG(Uint8List svgData) {
     return false;
   }
 
-  for (var node in document.children) {
+  for (final node in document.children) {
     if (node is XmlDoctype) {
       return false;
     }

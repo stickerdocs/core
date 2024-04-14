@@ -114,9 +114,9 @@ class CryptoService {
 
     // Try to load from config
     if (dataPrivateKey != null && dataPublicKey != null) {
-      var privateKey = await _decryptConfigSetting(dataPrivateKey);
-      var publicKey = base64ToUint8List(dataPublicKey);
-      var secretKey = _engine.loadSecureKey(privateKey!);
+      final privateKey = await _decryptConfigSetting(dataPrivateKey);
+      final publicKey = base64ToUint8List(dataPublicKey);
+      final secretKey = _engine.loadSecureKey(privateKey!);
       _dataKeyPairValue = KeyPair(secretKey: secretKey, publicKey: publicKey);
     } else {
       // Generate a new key pair
@@ -151,9 +151,9 @@ class CryptoService {
 
     // Try to load from config
     if (signingPrivateKey != null && signingPublicKey != null) {
-      var privateKey = await _decryptConfigSetting(signingPrivateKey);
-      var publicKey = base64ToUint8List(signingPublicKey);
-      var secretKey = _engine.loadSecureKey(privateKey!);
+      final privateKey = await _decryptConfigSetting(signingPrivateKey);
+      final publicKey = base64ToUint8List(signingPublicKey);
+      final secretKey = _engine.loadSecureKey(privateKey!);
       _signingKeyPairValue =
           KeyPair(secretKey: secretKey, publicKey: publicKey);
     } else {
