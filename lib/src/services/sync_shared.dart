@@ -548,7 +548,7 @@ class SyncSharedService {
     final trustedUser = await _db.getTrustedUserByUserId(userId);
 
     if (trustedUser == null) {
-      logger.e('No trusted user found');
+      logger.e('Trusted contact not found');
       return;
     }
 
