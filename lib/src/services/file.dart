@@ -534,7 +534,12 @@ class FileService {
     for (var chunkIndex = 0; chunkIndex < numberOfChunks; chunkIndex++) {
       final chunkPath = join(basePath, '$chunkIndex');
       final chunkFile = io.File(chunkPath);
-      await outputFile.writeAsBytes(await chunkFile.readAsBytes(), flush: true);
+
+      await outputFile.writeAsBytes(
+        await chunkFile.readAsBytes(),
+        flush: true,
+        mode: io.FileMode.writeOnlyAppend,
+      );
     }
 
     return outputFilePath;
