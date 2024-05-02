@@ -13,7 +13,7 @@ class File extends DBModel {
   String? contentType;
   Uint8List? encryptionKey;
   String? sourceUserId;
-  bool uploaded;
+  bool? uploaded;
   bool downloaded;
   bool notFound;
 
@@ -24,6 +24,7 @@ class File extends DBModel {
   String? _contentType;
   Uint8List? _encryptionKey;
   String? _sourceUserId;
+  bool? _uploaded;
 
   static const tableName = 'file';
   static const nameKey = 'name';
@@ -32,6 +33,7 @@ class File extends DBModel {
   static const contentTypeKey = 'content_type';
   static const sourceUserIdKey = 'source_user_id';
   static const encryptionKeyKey = 'encryption_key';
+  static const uploadedKey = 'uploaded';
 
   File({
     required this.name,
@@ -71,12 +73,17 @@ class File extends DBModel {
           encryptionKey == null ? null : uint8ListToBase64(encryptionKey!);
     }
 
+    // Sync the uploaded field so when syncing to other devices we know that this file has already been uploaded
+    // We don't care to persist the default uploaded = 0 value on construction
+    if (uploaded != _uploaded) {
+      changes[uploadedKey] = uploaded;
+    }
+
     if (isNew && sourceUserId != null || sourceUserId != _sourceUserId) {
       changes[sourceUserIdKey] = sourceUserId;
     }
 
     // local-only fields, don't sync these:
-    // * uploaded
     // * downloaded
     // * not_found
 
@@ -92,6 +99,7 @@ class File extends DBModel {
     _contentType = contentType;
     _encryptionKey = encryptionKey;
     _sourceUserId = sourceUserId;
+    _uploaded = uploaded;
     baseCommit();
   }
 
@@ -101,7 +109,7 @@ class File extends DBModel {
         size: map[sizeKey],
         sha256: map[sha256Key],
         contentType: map[contentTypeKey],
-        uploaded: (map['uploaded'] ?? 0) == 1,
+        uploaded: (map[uploadedKey] ?? 0) == 1,
         downloaded: (map['downloaded'] ?? 0) == 1,
         notFound: (map['not_found'] ?? 0) == 1);
 

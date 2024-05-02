@@ -335,7 +335,10 @@ class FileService {
     await io.Directory(join(config.dataOutboxPath, file.id))
         .delete(recursive: true);
 
-    await _db.markFileUploaded(file.id);
+    file.uploaded = true;
+    await _db.save(file);
+
+    await _db.deleteUploadedFileChunkEntries(file.id);
   }
 
   Future<bool> downloadFile(File file) async {

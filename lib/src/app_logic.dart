@@ -1237,7 +1237,7 @@ class AppLogic {
         size: size,
         sha256: sha256,
         contentType: await getMimeType(file, fileName),
-        uploaded: false,
+        uploaded: null,
         downloaded: true,
         notFound: false);
 

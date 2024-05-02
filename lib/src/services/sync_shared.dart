@@ -622,6 +622,7 @@ class SyncSharedService {
 
     // Burn the encryption key so a new one will be generated on upload
     file.encryptionKey = null;
+    file.uploaded = false;
 
     await _fileService.uploadFile(file);
 

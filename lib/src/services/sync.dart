@@ -186,8 +186,8 @@ class SyncService {
     final incomingEventFile = io.File(join(config.dataPath, eventFile.fileId));
     _temporaryFiles.add(incomingEventFile);
 
-    final eventData = await incomingEventFile.readAsString();
-    return Event.deserialize(eventData);
+    final eventData = await incomingEventFile.readAsBytes();
+    return Event.deserialize(uint8ListToString(eventData));
   }
 
   Future<Uint8List?> _decryptIncomingEventFile(EventFile eventFile) async {

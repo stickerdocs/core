@@ -575,11 +575,8 @@ class DBService {
     await batch.commit(noResult: true);
   }
 
-  Future<void> markFileUploaded(String fileId) async {
+  Future<void> deleteUploadedFileChunkEntries(String fileId) async {
     final batch = (await _db).batch();
-
-    batch.update('file', {'uploaded': 1},
-        where: 'file_id = ? AND uploaded = 0', whereArgs: [fileId]);
 
     batch
         .delete('file_chunk_upload', where: 'file_id = ?', whereArgs: [fileId]);
