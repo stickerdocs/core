@@ -1043,8 +1043,7 @@ class AppLogic {
       searchDocuments();
       searchStickers();
 
-      // TODO:
-      // todo downloaded files need to be in the state for a count of downloaded vs remaining to download, upload
+      // TODO: Downloaded files need to be in the state for a count of downloaded vs remaining to download, upload
 
       // Download files
       await _fileService.downloadFiles();
