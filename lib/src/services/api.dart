@@ -41,7 +41,8 @@ class APIService {
   static const _sourceUserIdHeader = 'Source-User-Id';
   static const _requestIdHeader = 'Request-Id';
   static const _signatureHeader = 'Signature';
-  static const _sanityResponseHeader = 'x-sanity'; // Note this X-Sanity response header is lower-case
+  // Note this X-Sanity response header is lower-case
+  static const _sanityResponseHeader = 'x-sanity';
 
   APIService(this.baseUrl, this.appName, this.appVersion);
 
@@ -280,6 +281,18 @@ class APIService {
     try {
       final response = await sendPost('account/subscribe', body: {
         'token': token,
+      });
+
+      return response.statusCode == HttpStatus.ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> subscribeViaApple(String verificationData) async {
+    try {
+      final response = await sendPost('account/subscribe/apple', body: {
+        'verification_data': verificationData,
       });
 
       return response.statusCode == HttpStatus.ok;

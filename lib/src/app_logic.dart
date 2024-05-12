@@ -438,6 +438,17 @@ class AppLogic {
     return true;
   }
 
+  Future<bool> subscribeViaApple(String verificationData) async {
+    if (!(await api.subscribeViaApple(verificationData))) {
+      return false;
+    }
+
+    await updateAccountDetails();
+
+    sync(); // Don't await
+    return true;
+  }
+
   Future<bool> exportData(String pathToExportTo) async {
     final dbFile = io.File(config.dbPath);
 
