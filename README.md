@@ -23,4 +23,4 @@ StickerDocs is distributed under [AGPL-3.0 license](LICENSE).
 
 ## Why is the App Not Open Source?
 
-We are not making the app open source at this time to prevent unauthorised clones. You have to take our word when we say all comms from the app go via this components.
+We are not making the app open source at this time to prevent unauthorised clones. You will have to take our word when we say all communications from the app go via this component.
