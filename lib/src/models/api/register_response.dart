@@ -4,8 +4,10 @@ class RegisterResponse {
   final String userId;
   final String? challengeResponse;
 
-  const RegisterResponse(
-      {required this.userId, required this.challengeResponse});
+  const RegisterResponse({
+    required this.userId,
+    required this.challengeResponse,
+  });
 
   Map<String, dynamic> toJson() => {
         'user_id': userId,

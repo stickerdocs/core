@@ -14,17 +14,18 @@ class RegisterRequest {
   final Uint8List keySalt;
   final String? token;
 
-  const RegisterRequest(
-      {required this.name,
-      required this.email,
-      required this.authPublicKey,
-      required this.authKey,
-      required this.dataPublicKey,
-      required this.encryptedDataPrivateKey,
-      required this.signingPublicKey,
-      required this.encryptedSigningPrivateKey,
-      required this.keySalt,
-      required this.token});
+  const RegisterRequest({
+    required this.name,
+    required this.email,
+    required this.authPublicKey,
+    required this.authKey,
+    required this.dataPublicKey,
+    required this.encryptedDataPrivateKey,
+    required this.signingPublicKey,
+    required this.encryptedSigningPrivateKey,
+    required this.keySalt,
+    required this.token,
+  });
 
   Map<String, dynamic> toJson() {
     final map = {

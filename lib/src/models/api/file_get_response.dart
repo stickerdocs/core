@@ -12,11 +12,12 @@ class FileGetResponse {
   final List<FileChunk> fileChunks;
   final Uint8List signature;
 
-  const FileGetResponse(
-      {required this.created,
-      required this.size,
-      required this.fileChunks,
-      required this.signature});
+  const FileGetResponse({
+    required this.created,
+    required this.size,
+    required this.fileChunks,
+    required this.signature,
+  });
 
   FileGetResponse.fromJson(
       Map<String, dynamic> map, String fileId, String? sourceUserId)
