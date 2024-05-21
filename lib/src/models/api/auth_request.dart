@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 
 import 'package:stickerdocs_core/src/utils.dart';
 
-class ChallengeRequest {
+class AuthRequest {
   final Uint8List authPublicKey;
   final Uint8List authKey;
 
-  const ChallengeRequest({
+  const AuthRequest({
     required this.authPublicKey,
     required this.authKey,
   });

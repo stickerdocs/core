@@ -1,21 +1,21 @@
-import 'package:flutter/foundation.dart';
-
-import 'package:stickerdocs_core/src/utils.dart';
+import 'package:stickerdocs_core/src/models/api/auth_request.dart';
 
 class LoginRequest {
   final String email;
-  final Uint8List authPublicKey;
-  final Uint8List authKey;
+  final AuthRequest authRequest;
 
   const LoginRequest({
     required this.email,
-    required this.authPublicKey,
-    required this.authKey,
+    required this.authRequest,
   });
 
-  Map<String, dynamic> toJson() => {
-        'email': email,
-        'auth_public_key': uint8ListToBase64(authPublicKey),
-        'auth_key': uint8ListToBase64(authKey)
-      };
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> map = {
+      'email': email,
+    };
+
+    map.addAll(authRequest.toJson());
+
+    return map;
+  }
 }

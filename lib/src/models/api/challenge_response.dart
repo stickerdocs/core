@@ -5,8 +5,6 @@ class ChallengeResponse {
 
   const ChallengeResponse({required this.challengeResponse});
 
-  Map<String, dynamic> toJson() => {'challenge_response': challengeResponse};
-
   ChallengeResponse.fromJson(Map<String, dynamic> map)
       : challengeResponse = map['challenge_response'];
 
@@ -16,6 +14,7 @@ class ChallengeResponse {
     }
     
     Map<String, dynamic> decoded = jsonDecode(data);
+    
     return ChallengeResponse.fromJson(decoded);
   }
 }

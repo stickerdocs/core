@@ -10,7 +10,9 @@ import 'package:path/path.dart';
 import 'package:stickerdocs_core/models.dart';
 import 'package:stickerdocs_core/src/app_state.dart';
 import 'package:stickerdocs_core/src/importers/evernote.dart';
+import 'package:stickerdocs_core/src/main.dart';
 import 'package:stickerdocs_core/src/models/api/account_details_response.dart';
+import 'package:stickerdocs_core/src/models/api/delete_account_verify_request.dart';
 import 'package:stickerdocs_core/src/models/api/report_harmful_content.dart';
 import 'package:stickerdocs_core/src/models/db/block.dart';
 import 'package:stickerdocs_core/src/models/invitation.dart';
@@ -22,7 +24,6 @@ import 'package:stickerdocs_core/src/services/file.dart';
 import 'package:stickerdocs_core/src/services/sync.dart';
 import 'package:stickerdocs_core/src/temp_file.dart';
 import 'package:stickerdocs_core/src/utils.dart';
-import 'package:stickerdocs_core/src/main.dart';
 
 enum AppLogicResult {
   offline,
@@ -68,6 +69,7 @@ class AppLogic {
 
   Invitation? _invitation;
   Uint8List? _invitationSignature;
+  String? challengeResponse;
 
   AppLogic(this.appState);
 
@@ -151,12 +153,8 @@ class AppLogic {
   ) async {
     _ephemeralEmail = email;
 
-    if (token != null) {
-      token = token.trim();
-    }
-
-    final request = await crypto.generateRegistrationData(
-        name.trim(), email.trim(), password.trim(), token);
+    final request =
+        await crypto.generateRegistrationData(name, email, password, token);
 
     if (request == null) {
       return AppLogicResult.cryptoError;
@@ -188,8 +186,7 @@ class AppLogic {
       return AppLogicResult.missedStepError;
     }
 
-    final request =
-        crypto.generateAuthChallengeResponse(challengeResponse.trim());
+    final request = crypto.generateAuthChallengeResponse(challengeResponse);
 
     if (request == null) {
       return AppLogicResult.cryptoError;
@@ -325,8 +322,7 @@ class AppLogic {
       return AppLogicResult.missedStepError;
     }
 
-    final request =
-        crypto.generateAuthChallengeResponse(challengeResponse.trim());
+    final request = crypto.generateAuthChallengeResponse(challengeResponse);
 
     if (request == null) {
       return AppLogicResult.cryptoError;
@@ -357,16 +353,14 @@ class AppLogic {
     return AppLogicResult.ok;
   }
 
-  Future<AppLogicResult> changePassword(
-      String currentPassword, String newPassword) async {
+  Future<AppLogicResult> changePassword(String currentPassword) async {
     final email = await config.userEmail;
 
     if (email == null) {
       return AppLogicResult.missedStepError;
     }
 
-    final request =
-        crypto.generateChangePasswordRequest(email, currentPassword.trim());
+    final request = crypto.generateAuthRequestData(email, currentPassword);
 
     if (request == null) {
       return AppLogicResult.cryptoError;
@@ -379,44 +373,30 @@ class AppLogic {
     }
 
     if (response.challengeResponse != null) {
-      final result =
-          await changePasswordVerify(response.challengeResponse!, newPassword);
-
-      if (result == AppLogicResult.ok) {
-        return AppLogicResult.accountActionDoesNotRequireChallenge;
-      }
-
-      return result;
+      challengeResponse = response.challengeResponse;
+      return AppLogicResult.accountActionDoesNotRequireChallenge;
     }
 
     return AppLogicResult.ok;
   }
 
-  Future<AppLogicResult> changePasswordVerify(
-      String challengeResponse, String newPassword) async {
+  Future<AppLogicResult> changePasswordVerify(String newPassword) async {
     final email = await config.userEmail;
 
     if (email == null) {
       return AppLogicResult.missedStepError;
     }
 
-    final challengeResponseData =
-        crypto.generateAuthChallengeResponse(challengeResponse.trim());
-
-    if (challengeResponseData == null) {
-      return AppLogicResult.cryptoError;
+    if (challengeResponse == null) {
+      return AppLogicResult.missedStepError;
     }
 
-    // TODO: do we need to re-encrypt the data keys?
-
-    final request =
-        crypto.generateChangePasswordRequest(email, newPassword.trim());
+    final request = await crypto.generateChangePasswordVerifyRequest(
+        challengeResponse!, email, newPassword);
 
     if (request == null) {
       return AppLogicResult.cryptoError;
     }
-
-    request.challengeResponse = challengeResponseData;
 
     final success = await _api.changePasswordVerify(request);
 
@@ -425,6 +405,73 @@ class AppLogic {
     }
 
     return AppLogicResult.ok;
+  }
+
+  Future<AppLogicResult> changeEmail(String password) async {
+    final email = await config.userEmail;
+
+    if (email == null) {
+      return AppLogicResult.missedStepError;
+    }
+
+    final request = crypto.generateAuthRequestData(email, password);
+
+    if (request == null) {
+      return AppLogicResult.cryptoError;
+    }
+
+    final response = await _api.changeEmail(request);
+
+    if (response == null) {
+      return AppLogicResult.apiError;
+    }
+
+    if (response.challengeResponse != null) {
+      challengeResponse = response.challengeResponse;
+      return AppLogicResult.accountActionDoesNotRequireChallenge;
+    }
+
+    return AppLogicResult.ok;
+  }
+
+  Future<AppLogicResult> changeEmailVerify(
+      String password, String newEmail) async {
+    final email = await config.userEmail;
+
+    if (email == null) {
+      return AppLogicResult.missedStepError;
+    }
+
+    if (challengeResponse == null) {
+      return AppLogicResult.missedStepError;
+    }
+
+    final request = await crypto.generateChangeEmailVerifyRequest(
+        challengeResponse!, email, password);
+
+    if (request == null) {
+      return AppLogicResult.cryptoError;
+    }
+
+    final success = await _api.changeEmailVerify(request);
+
+    if (!success) {
+      return AppLogicResult.apiError;
+    }
+
+    await config.setUserEmail(newEmail);
+
+    return AppLogicResult.ok;
+  }
+
+  Future<bool> changeName(String name) async {
+    final success = await _api.changeAccountName(name);
+
+    if (success) {
+      await updateAccountDetails();
+    }
+
+    return success;
   }
 
   Future<bool> subscribe(String token) async {
@@ -1308,8 +1355,7 @@ class AppLogic {
       return false;
     }
 
-    //return await _deleteFile(file);
-    return false;
+    return await _deleteFile(file);
   }
 
   Future<bool> submitCrashReport(String report) async {
@@ -1323,7 +1369,7 @@ class AppLogic {
       return AppLogicResult.missedStepError;
     }
 
-    final request = crypto.generateChallengeRequestData(email, password.trim());
+    final request = crypto.generateAuthRequestData(email, password);
 
     if (request == null) {
       return AppLogicResult.cryptoError;
@@ -1349,14 +1395,15 @@ class AppLogic {
   }
 
   Future<AppLogicResult> deleteAccountVerify(String challengeResponse) async {
-    final request =
-        crypto.generateAuthChallengeResponse(challengeResponse.trim());
+    final encryptedChallengeResponse =
+        crypto.generateAuthChallengeResponse(challengeResponse);
 
-    if (request == null) {
+    if (encryptedChallengeResponse == null) {
       return AppLogicResult.cryptoError;
     }
 
-    final success = await _api.deleteAccountVerify(request);
+    final success = await _api.deleteAccountVerify(DeleteAccountVerifyRequest(
+        challengeResponse: encryptedChallengeResponse));
 
     if (success) {
       await clearOnlineState();

@@ -20,6 +20,7 @@ class RegisterResponse {
 
   static RegisterResponse deserialize(String data) {
     Map<String, dynamic> decoded = jsonDecode(data);
+
     return RegisterResponse.fromJson(decoded);
   }
 }

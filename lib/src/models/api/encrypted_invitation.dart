@@ -14,6 +14,7 @@ class EncryptedInvitation {
 
   static EncryptedInvitation deserialize(String data) {
     Map<String, dynamic> decoded = jsonDecode(data);
+    
     return EncryptedInvitation.fromJson(decoded);
   }
 }

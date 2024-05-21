@@ -21,10 +21,10 @@ class CryptoEngine {
   }
 
   // https://libsodium.gitbook.io/doc/password_hashing/default_phf#example-1-key-derivation
-  SecureKey passwordHash(Uint8List salt, String password) {
+  SecureKey passwordHash(Uint8List salt, Int8List password) {
     return _sodium.crypto.pwhash.call(
         outLen: _sodium.crypto.secretBox.keyBytes,
-        password: stringToInt8List(password),
+        password: password,
         salt: salt,
         opsLimit: _sodium.crypto.pwhash.opsLimitInteractive,
         memLimit: _sodium.crypto.pwhash.memLimitInteractive);

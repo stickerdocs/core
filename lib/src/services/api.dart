@@ -8,25 +8,27 @@ import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:stickerdocs_core/src/app_logic.dart';
-import 'package:stickerdocs_core/src/models/api/challenge_request.dart';
-import 'package:stickerdocs_core/src/utils.dart';
 import 'package:stickerdocs_core/src/main.dart';
 import 'package:stickerdocs_core/src/models/api/account_details_response.dart';
+import 'package:stickerdocs_core/src/models/api/auth_request.dart';
 import 'package:stickerdocs_core/src/models/api/challenge_response.dart';
+import 'package:stickerdocs_core/src/models/api/change_email_request.dart';
 import 'package:stickerdocs_core/src/models/api/change_password_request.dart';
-import 'package:stickerdocs_core/src/models/file_chunk.dart';
+import 'package:stickerdocs_core/src/models/api/delete_account_verify_request.dart';
+import 'package:stickerdocs_core/src/models/api/encrypted_invitation.dart';
 import 'package:stickerdocs_core/src/models/api/file_get_response.dart';
 import 'package:stickerdocs_core/src/models/api/file_put_request.dart';
+import 'package:stickerdocs_core/src/models/api/invitation_request.dart';
 import 'package:stickerdocs_core/src/models/api/invitation_response.dart';
-import 'package:stickerdocs_core/src/models/api/register_request.dart';
 import 'package:stickerdocs_core/src/models/api/login_request.dart';
 import 'package:stickerdocs_core/src/models/api/login_response.dart';
+import 'package:stickerdocs_core/src/models/api/register_request.dart';
 import 'package:stickerdocs_core/src/models/api/register_response.dart';
-import 'package:stickerdocs_core/src/models/event_file.dart';
-import 'package:stickerdocs_core/src/models/api/encrypted_invitation.dart';
-import 'package:stickerdocs_core/src/models/invitation_info.dart';
-import 'package:stickerdocs_core/src/models/api/invitation_request.dart';
 import 'package:stickerdocs_core/src/models/api/report_harmful_content.dart';
+import 'package:stickerdocs_core/src/models/event_file.dart';
+import 'package:stickerdocs_core/src/models/file_chunk.dart';
+import 'package:stickerdocs_core/src/models/invitation_info.dart';
+import 'package:stickerdocs_core/src/utils.dart';
 
 class APIService {
   final String baseUrl;
@@ -204,7 +206,7 @@ class APIService {
   }
 
   Future<RegisterResponse?> register(RegisterRequest request) async {
-    final response = await sendPost('account/register', body: request);
+    final response = await sendPut('account/register', body: request);
 
     if (response.statusCode == HttpStatus.ok) {
       return RegisterResponse.deserialize(response.body);
@@ -215,7 +217,7 @@ class APIService {
 
   Future<Uint8List?> registerVerify(
       Uint8List challengeResponse, String userId) async {
-    final response = await sendPost('account/register/verify', body: {
+    final response = await sendPost('account/register', body: {
       'challenge_response': uint8ListToBase64(challengeResponse),
     }, additionalHeaders: {
       _userIdHeader: userId
@@ -253,7 +255,7 @@ class APIService {
   }
 
   Future<LoginResponse?> login(LoginRequest request) async {
-    final response = await sendPost('account/login', body: request);
+    final response = await sendPut('account/login', body: request);
 
     if (response.statusCode == HttpStatus.ok) {
       return LoginResponse.deserialize(response.body);
@@ -264,7 +266,7 @@ class APIService {
 
   Future<Uint8List?> loginVerify(
       Uint8List challengeResponse, String userId) async {
-    final response = await sendPost('account/login/verify', body: {
+    final response = await sendPost('account/login', body: {
       'challenge_response': uint8ListToBase64(challengeResponse),
     }, additionalHeaders: {
       _userIdHeader: userId
@@ -506,9 +508,8 @@ class APIService {
     return response.statusCode == HttpStatus.ok;
   }
 
-  Future<ChallengeResponse?> changePassword(
-      ChangePasswordRequest request) async {
-    final response = await sendPost('account/change-password', body: request);
+  Future<ChallengeResponse?> changePassword(AuthRequest request) async {
+    final response = await sendPut('account/update/password', body: request);
 
     if (response.statusCode == HttpStatus.ok) {
       return ChallengeResponse.deserialize(response.body);
@@ -517,14 +518,35 @@ class APIService {
     return null;
   }
 
-  Future<bool> changePasswordVerify(ChangePasswordRequest request) async {
-    final response =
-        await sendPost('account/change-password/verify', body: request);
+  Future<bool> changePasswordVerify(ChangePasswordVerifyRequest request) async {
+    final response = await sendPost('account/update/password', body: request);
+    return response.statusCode == HttpStatus.ok;
+  }
+
+  Future<ChallengeResponse?> changeEmail(AuthRequest request) async {
+    final response = await sendPut('account/update/email', body: request);
+
+    if (response.statusCode == HttpStatus.ok) {
+      return ChallengeResponse.deserialize(response.body);
+    }
+
+    return null;
+  }
+
+  Future<bool> changeEmailVerify(ChangeEmailVerifyRequest request) async {
+    final response = await sendPost('account/update/email', body: request);
+    return response.statusCode == HttpStatus.ok;
+  }
+
+  Future<bool> changeAccountName(String name) async {
+    final response = await sendPost('account/update/name', body: {
+      'name': name,
+    });
 
     return response.statusCode == HttpStatus.ok;
   }
 
-  Future<ChallengeResponse?> deleteAccount(ChallengeRequest request) async {
+  Future<ChallengeResponse?> deleteAccount(AuthRequest request) async {
     final response = await sendPost('account/delete', body: request);
 
     if (response.statusCode == HttpStatus.ok) {
@@ -534,11 +556,8 @@ class APIService {
     return null;
   }
 
-  Future<bool> deleteAccountVerify(Uint8List challengeResponse) async {
-    final response = await sendPost('account/delete/verify', body: {
-      'challenge_response': uint8ListToBase64(challengeResponse),
-    });
-
+  Future<bool> deleteAccountVerify(DeleteAccountVerifyRequest request) async {
+    final response = await sendPost('account/delete/verify', body: request);
     return response.statusCode == HttpStatus.ok;
   }
 }

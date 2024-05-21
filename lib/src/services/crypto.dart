@@ -8,25 +8,29 @@ import 'package:get_it/get_it.dart';
 import 'package:sodium/sodium.dart';
 import 'package:crypto/crypto.dart' as hash;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:stickerdocs_core/src/models/api/challenge_request.dart';
-import 'package:stickerdocs_core/src/models/api/change_password_request.dart';
 
-import 'package:stickerdocs_core/src/models/api/invitation_response.dart';
+import 'package:stickerdocs_core/src/main.dart';
+import 'package:stickerdocs_core/src/models/api/auth_request.dart';
+import 'package:stickerdocs_core/src/models/api/change_email_request.dart';
+import 'package:stickerdocs_core/src/models/api/change_password_request.dart';
+import 'package:stickerdocs_core/src/models/api/encrypted_invitation.dart';
 import 'package:stickerdocs_core/src/models/api/invitation_request.dart';
-import 'package:stickerdocs_core/src/models/db/invited_user.dart';
-import 'package:stickerdocs_core/src/models/invitation.dart';
-import 'package:stickerdocs_core/src/models/api/register_request.dart';
-import 'package:stickerdocs_core/src/models/register_verify_response.dart';
+import 'package:stickerdocs_core/src/models/api/invitation_response.dart';
 import 'package:stickerdocs_core/src/models/api/login_request.dart';
 import 'package:stickerdocs_core/src/models/api/login_verify_response.dart';
-import 'package:stickerdocs_core/src/models/api/encrypted_invitation.dart';
+import 'package:stickerdocs_core/src/models/api/register_request.dart';
 import 'package:stickerdocs_core/src/models/db/file.dart';
+import 'package:stickerdocs_core/src/models/db/invited_user.dart';
 import 'package:stickerdocs_core/src/models/db/sticker.dart';
+import 'package:stickerdocs_core/src/models/encrypted_keys.dart';
+import 'package:stickerdocs_core/src/models/invitation.dart';
+import 'package:stickerdocs_core/src/models/register_verify_response.dart';
 import 'package:stickerdocs_core/src/services/crypto_engine.dart';
 import 'package:stickerdocs_core/src/utils.dart';
-import 'package:stickerdocs_core/src/main.dart';
 
 const int fileHashChunkSize = 1024;
+const int minimumPasswordLength = 10;
+const int challengeResponseLength = 6;
 
 class SaltAndKey {
   Uint8List salt;
@@ -39,7 +43,7 @@ class CryptoService {
   Uint8List reportHarmPublicKey;
   bool downgradeConfigSecurity;
   final CryptoEngine _engine = GetIt.I.get<CryptoEngine>();
-  String? _ephemeralPassword;
+  Int8List? _ephemeralPassword;
   KeyPair? _ephemeralAccountKeyPairValue;
   KeyPair? _dataKeyPairValue;
   KeyPair? _signingKeyPairValue;
@@ -215,14 +219,31 @@ class CryptoService {
     return output.events.single.toString();
   }
 
-  SaltAndKey _deriveKey(String password) {
+  SaltAndKey? _deriveKey(String password) {
+    final Int8List? formattedPassword = _formatPassword(password);
+
+    if (formattedPassword == null) {
+      return null;
+    }
+
     // 16 bytes for salt
     final salt = _engine.generateSaltForPasswordHashing();
 
-    return SaltAndKey(salt, _engine.passwordHash(salt, password));
+    return SaltAndKey(salt, _engine.passwordHash(salt, formattedPassword));
   }
 
-  SecureKey _deriveDeterministicKey(String email, String password) {
+  Int8List? _formatPassword(String password) {
+    final String formattedPassword = password.trim();
+
+    // Enforce minimum password length
+    if (password.length < minimumPasswordLength) {
+      return null;
+    }
+
+    return stringToInt8List(formattedPassword);
+  }
+
+  SecureKey _deriveDeterministicKey(String email, Int8List password) {
     var emailSeed = email;
 
     // Build up a repeating string containing the email to get to a desired seed length
@@ -349,60 +370,60 @@ class CryptoService {
   }
 
   // If we change our email we need to update the password too
-  Uint8List? _generateEncryptedAuthKey(String email, String password) {
+  AuthRequest? _generateEncryptedAuthRequest(String email, String password) {
+    // Clear the ephemeral auth key to force generation of a new one
+    _ephemeralAccountKeyPairValue = null;
+
+    final Int8List? formattedPassword = _formatPassword(password);
+
+    if (formattedPassword == null) {
+      return null;
+    }
+
     // 32 bytes
-    final authKey = _deriveDeterministicKey(email.toLowerCase(), password);
+    final authKey =
+        _deriveDeterministicKey(email.toLowerCase().trim(), formattedPassword);
 
     // 72 bytes
-    return _encryptForStickerDocsServer(authKey.extractBytes());
+    final encryptedAuthKey =
+        _encryptForStickerDocsServer(authKey.extractBytes());
+
+    if (encryptedAuthKey == null) {
+      return null;
+    }
+
+    return AuthRequest(
+        authPublicKey: _ephemeralAccountKeyPair.publicKey,
+        authKey: encryptedAuthKey);
   }
 
   Future<RegisterRequest?> generateRegistrationData(
       String name, String email, String password, String? token) async {
-    // 72 bytes
-    final authKey = _generateEncryptedAuthKey(email, password);
+    final authRequest = _generateEncryptedAuthRequest(email, password);
 
-    if (authKey == null) {
-      logger.e('Could not generate an auth key');
+    if (authRequest == null) {
+      logger.e('Could not generate an auth request');
       return null;
     }
 
-    // 32 bytes for key and 16 bytes for salt
-    final saltAndKey = _deriveKey(password);
+    final encryptedKeys = await _generateEncryptedKeysFromPassword(password);
+
+    if (encryptedKeys == null) {
+      logger.e('Could not generate encrypted keys key');
+      return null;
+    }
 
     final dataKeyPair = await _dataKeyPair;
     final signingKeyPair = await _signingKeyPair;
 
-    // 72 bytes
-    final encryptedDataPrivateKey =
-        _secretBoxEncrypt(dataKeyPair.secretKey.extractBytes(), saltAndKey.key);
-
-    if (encryptedDataPrivateKey == null) {
-      return null;
-    }
-
-    // 104 bytes
-    final encryptedSigningPrivateKey = _secretBoxEncrypt(
-        signingKeyPair.secretKey.extractBytes(), saltAndKey.key);
-
-    if (encryptedSigningPrivateKey == null) {
-      return null;
-    }
-
-    // We no longer need this key
-    saltAndKey.key.dispose();
-
     return RegisterRequest(
         name: name,
-        email: email,
-        authPublicKey: _ephemeralAccountKeyPair.publicKey,
-        authKey: authKey,
+        email: email.trim(),
+        authRequest: authRequest,
         dataPublicKey: dataKeyPair.publicKey,
-        encryptedDataPrivateKey: encryptedDataPrivateKey,
         signingPublicKey: signingKeyPair.publicKey,
-        encryptedSigningPrivateKey: encryptedSigningPrivateKey,
-        keySalt: saltAndKey.salt,
-        token: token);
+        encryptedKeys: encryptedKeys,
+        token: token?.trim());
   }
 
   Future<bool> decryptRegisterVerifyResponseAndPersist(
@@ -436,70 +457,123 @@ class CryptoService {
   }
 
   LoginRequest? generateLoginData(String email, String password) {
-    _ephemeralPassword = password;
+    // Persist the for password for hashing later (we do not yet have the salt)
+    _ephemeralPassword = stringToInt8List(password);
 
-    // 72 bytes
-    final authKey = _generateEncryptedAuthKey(email, password);
+    final authRequest = _generateEncryptedAuthRequest(email, password);
 
-    if (authKey == null) {
-      logger.e('Could not generate an auth key');
+    if (authRequest == null) {
+      logger.e('Could not generate an auth request');
       return null;
     }
 
-    return LoginRequest(
+    return LoginRequest(email: email, authRequest: authRequest);
+  }
+
+  AuthRequest? generateAuthRequestData(String email, String password) {
+    return _generateEncryptedAuthRequest(email, password);
+  }
+
+  Future<ChangePasswordVerifyRequest?> generateChangePasswordVerifyRequest(
+      String challengeResponse, String email, String newPassword) async {
+    final encryptedChallengeResponse =
+        generateAuthChallengeResponse(challengeResponse);
+
+    if (encryptedChallengeResponse == null) {
+      return null;
+    }
+
+    final authRequest = _generateEncryptedAuthRequest(email, newPassword);
+
+    if (authRequest == null) {
+      logger.e('Could not generate an auth request');
+      return null;
+    }
+
+    final encryptedKeys = await _generateEncryptedKeysFromPassword(newPassword);
+
+    if (encryptedKeys == null) {
+      logger.e('Could not generate encrypted keys key');
+      return null;
+    }
+
+    return ChangePasswordVerifyRequest(
+        challengeResponse: encryptedChallengeResponse,
+        authRequest: authRequest,
+        encryptedKeys: encryptedKeys);
+  }
+
+  Future<ChangeEmailVerifyRequest?> generateChangeEmailVerifyRequest(
+      String challengeResponse, String email, String password) async {
+    final encryptedChallengeResponse =
+        generateAuthChallengeResponse(challengeResponse);
+
+    if (encryptedChallengeResponse == null) {
+      return null;
+    }
+
+    final authRequest = _generateEncryptedAuthRequest(email, password);
+
+    if (authRequest == null) {
+      logger.e('Could not generate an auth request');
+      return null;
+    }
+
+    return ChangeEmailVerifyRequest(
+        challengeResponse: encryptedChallengeResponse,
         email: email,
-        authPublicKey: _ephemeralAccountKeyPair.publicKey,
-        authKey: authKey);
+        authRequest: authRequest);
   }
 
-  ChallengeRequest? generateChallengeRequestData(
-      String email, String password) {
-    _ephemeralPassword = password;
+  Future<EncryptedKeys?> _generateEncryptedKeysFromPassword(
+      String password) async {
+    // 32 bytes for key and 16 bytes for salt
+    final saltAndKey = _deriveKey(password);
 
-    // 72 bytes
-    final authKey = _generateEncryptedAuthKey(email, password);
-
-    if (authKey == null) {
-      logger.e('Could not generate an auth key');
+    if (saltAndKey == null) {
+      logger.e('Could not derive salt and key');
       return null;
     }
 
-    return ChallengeRequest(
-        authPublicKey: _ephemeralAccountKeyPair.publicKey, authKey: authKey);
-  }
+    final dataKeyPair = await _dataKeyPair;
+    final signingKeyPair = await _signingKeyPair;
 
-  ChangePasswordRequest? generateChangePasswordRequest(
-      String email, String existingPassword) {
     // 72 bytes
-    final authKey = _generateEncryptedAuthKey(email, existingPassword);
+    final encryptedDataPrivateKey =
+        _secretBoxEncrypt(dataKeyPair.secretKey.extractBytes(), saltAndKey.key);
 
-    if (authKey == null) {
-      logger.e('Could not generate an auth key');
+    if (encryptedDataPrivateKey == null) {
       return null;
     }
 
-    return ChangePasswordRequest(
-        authPublicKey: _ephemeralAccountKeyPair.publicKey, authKey: authKey);
-  }
+    // 104 bytes
+    final encryptedSigningPrivateKey = _secretBoxEncrypt(
+        signingKeyPair.secretKey.extractBytes(), saltAndKey.key);
 
-  ChangePasswordRequest? generateChangePasswordVerifyRequest(
-      String email, String newPassword) {
-    // 72 bytes
-    final authKey = _generateEncryptedAuthKey(email, newPassword);
-
-    if (authKey == null) {
-      logger.e('Could not generate an auth key');
+    if (encryptedSigningPrivateKey == null) {
       return null;
     }
 
-    return ChangePasswordRequest(
-        authPublicKey: _ephemeralAccountKeyPair.publicKey, authKey: authKey);
+    // We no longer need this key
+    saltAndKey.key.dispose();
+
+    return EncryptedKeys(
+        encryptedDataPrivateKey: encryptedDataPrivateKey,
+        encryptedSigningPrivateKey: encryptedSigningPrivateKey,
+        keySalt: saltAndKey.salt);
   }
 
   Uint8List? generateAuthChallengeResponse(String challengeResponse) {
+    final String formattedChallengeResponse = challengeResponse.trim();
+
+    // Enforce challenge response length
+    if (formattedChallengeResponse.length != challengeResponseLength) {
+      return null;
+    }
+
     // 46 bytes
-    final encryptedChallengeResponse =
-        _encryptForStickerDocsServer(stringToUint8List(challengeResponse));
+    final encryptedChallengeResponse = _encryptForStickerDocsServer(
+        stringToUint8List(formattedChallengeResponse));
 
     if (encryptedChallengeResponse == null) {
       logger.e('Could not generate an auth challenge response');
@@ -509,6 +583,10 @@ class CryptoService {
   }
 
   Future<bool> decryptLoginVerifyResponseAndPersist(Uint8List message) async {
+    if (_ephemeralPassword == null) {
+      return false;
+    }
+
     final plainText = _decryptFromStickerDocsServer(message);
 
     if (plainText == null) {
@@ -519,7 +597,9 @@ class CryptoService {
         LoginVerifyResponse.deserialize(uint8ListToString(plainText));
 
     final key = _engine.passwordHash(response.keySalt, _ephemeralPassword!);
-    _ephemeralPassword = null;
+
+    // We no longer need the password so clear it out
+    securelyClearInt8List(_ephemeralPassword);
 
     await _setDataKeyPair(_decryptKeyPair(
         key, response.encryptedDataPrivateKey, response.dataPublicKey));
@@ -607,6 +687,11 @@ class CryptoService {
     // 32 bytes for key and 16 bytes for salt
     final saltAndKey = _deriveKey(passphrase);
 
+    if (saltAndKey == null) {
+      logger.e('Could not derive salt and key');
+      return null;
+    }
+
     // 391 bytes
     final encryptedInvitation =
         _secretBoxEncrypt(invitationBytes, saltAndKey.key);
@@ -614,6 +699,9 @@ class CryptoService {
     if (encryptedInvitation == null) {
       return null;
     }
+
+    // We no longer need this key
+    saltAndKey.key.dispose();
 
     return InvitationRequest(
       invitationId: invitation.invitationId,
@@ -630,8 +718,8 @@ class CryptoService {
   Future<Invitation?> decryptInvitation(
       EncryptedInvitation encryptedInvitation, String passphrase) async {
     // 32 bytes
-    final key =
-        _engine.passwordHash(encryptedInvitation.challengeSalt, passphrase);
+    final key = _engine.passwordHash(
+        encryptedInvitation.challengeSalt, stringToInt8List(passphrase));
 
     // 391 bytes
     final invitationBytes =
@@ -715,4 +803,16 @@ class CryptoService {
 
     return uint8ListToBase64(signature);
   }
+}
+
+void securelyClearInt8List(Int8List? list) {
+  if (list == null) {
+    return;
+  }
+
+  for (int index = 0; index < list.length; index++) {
+    list[index] = 0;
+  }
+
+  list = null;
 }

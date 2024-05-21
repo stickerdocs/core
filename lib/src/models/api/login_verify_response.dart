@@ -37,6 +37,7 @@ class LoginVerifyResponse {
 
   static LoginVerifyResponse deserialize(String data) {
     Map<String, dynamic> decoded = jsonDecode(data);
+
     return LoginVerifyResponse.fromJson(decoded);
   }
 }
