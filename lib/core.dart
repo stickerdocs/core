@@ -15,7 +15,8 @@ export 'package:stickerdocs_core/src/utils.dart'
         platformName,
         isoDateToStringNow,
         newUuid,
-        stringToUint8List;
+        stringToUint8List,
+        logger;
 
 export 'package:stickerdocs_core/src/validation.dart' show isSDIDValid;
 

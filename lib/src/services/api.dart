@@ -147,8 +147,8 @@ class APIService {
       String? formattedBody,
       http.Response response) async {
     final log = response.statusCode == HttpStatus.ok ? logger.d : logger.e;
-
     log('${response.statusCode}: $method $url');
+
     logger.t(headers);
 
     if (formattedBody != null && formattedBody.isNotEmpty) {
@@ -291,10 +291,10 @@ class APIService {
     }
   }
 
-  Future<bool> subscribeViaApple(String verificationData) async {
+  Future<bool> subscribeViaApple(String transactionId) async {
     try {
       final response = await sendPost('account/subscribe/apple', body: {
-        'verification_data': verificationData,
+        'transaction_id': transactionId,
       });
 
       return response.statusCode == HttpStatus.ok;
