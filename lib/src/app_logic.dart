@@ -485,8 +485,8 @@ class AppLogic {
     return true;
   }
 
-  Future<bool> subscribeViaApple(String verificationData) async {
-    if (!(await api.subscribeViaApple(verificationData))) {
+  Future<bool> subscribeViaApple(String transactionId) async {
+    if (!(await api.subscribeViaApple(transactionId))) {
       return false;
     }
 
