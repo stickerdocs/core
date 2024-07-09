@@ -476,8 +476,11 @@ class AppLogic {
 
   Future<bool> subscribe(String token) async {
     if (!(await api.subscribe(token))) {
+      appState.subscriptionStatus.value = SubscriptionStatus.unsuccessful;
       return false;
     }
+
+    appState.subscriptionStatus.value = SubscriptionStatus.successful;
 
     await updateAccountDetails();
 
@@ -485,15 +488,17 @@ class AppLogic {
     return true;
   }
 
-  Future<bool> subscribeViaApple(String transactionId) async {
+  Future<void> subscribeViaApple(String transactionId) async {
     if (!(await api.subscribeViaApple(transactionId))) {
-      return false;
+      appState.subscriptionStatus.value = SubscriptionStatus.unsuccessful;
+      return;
     }
+
+    appState.subscriptionStatus.value = SubscriptionStatus.successful;
 
     await updateAccountDetails();
 
     sync(); // Don't await
-    return true;
   }
 
   Future<bool> exportData(String pathToExportTo) async {

@@ -2,6 +2,13 @@ import 'package:flutter/widgets.dart';
 
 import 'package:stickerdocs_core/models.dart';
 
+enum SubscriptionStatus {
+  unknown,
+  unsuccessful,
+  successful,
+  subscribed
+}
+
 class AppState {
   final documents = ValueNotifier<List<Document>>([]);
   final documentCount = ValueNotifier<int>(0);
@@ -25,4 +32,6 @@ class AppState {
 
   // TODO: app should notify when this condition occurs, used for adding files
   final errorMessages = ValueNotifier<List<String>>([]);
+
+  final subscriptionStatus = ValueNotifier<SubscriptionStatus>(SubscriptionStatus.unknown);
 }
