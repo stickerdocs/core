@@ -1178,9 +1178,9 @@ class AppLogic {
     if (document is BlockDocument) {
       final blocks = await logic.getBlocksForBlockDocument(document);
 
-      for (final block in blocks) {
-        // TODO: add block document files to the list
-      }
+      // for (final block in blocks) {
+      //   // TODO: add block document files to the list
+      // }
     }
 
     // TODO: only remove files that are dangling and not used by other documents
