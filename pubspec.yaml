@@ -25,8 +25,8 @@ dependencies:
   mutex: ^3.0.1
   nanoid: ^1.0.0
   path: ^1.8.3
-  sodium: ^3.2.0
-  sodium_libs: ^3.2.0
+  sodium: 2.3.1
+  sodium_libs: 2.2.1
   sqflite: ^2.3.0
   sqflite_common_ffi: ^2.3.0+2
   xml: ^6.3.0
