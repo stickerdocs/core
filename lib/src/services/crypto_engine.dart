@@ -1,14 +1,20 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:ffi';
 
+import 'package:sodium/sodium_sumo.dart';
 import 'package:sodium_libs/sodium_libs.dart';
+
 
 import 'package:stickerdocs_core/src/utils.dart';
 
-late final Sodium _sodium;
+late final SodiumSumo _sodium;
+
 
 Future<void> initCryptoEngine() async {
-  _sodium = await SodiumInit.init();
+  // _sodium = await SodiumSumoInit.init(() => DynamicLibrary.open(
+  //         "/usr/local/lib/libsodium.dylib")); // "/usr/local/lib/libsodium.dylib"
+   _sodium = await SodiumSumoInit.init(() => DynamicLibrary.process());
 }
 
 class CryptoEngine {
