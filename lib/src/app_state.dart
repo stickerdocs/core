@@ -24,7 +24,7 @@ class AppState {
   final invitedSticker = ValueNotifier<Sticker?>(null);
   final accountDetails = ValueNotifier<AccountDetails?>(null);
 
-  /// True if the app is synchronising
+  // True if the app is synchronising
   final isSynchronising = ValueNotifier<bool>(false);
 
   final serviceMessage = ValueNotifier<String?>(null);
