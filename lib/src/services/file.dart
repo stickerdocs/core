@@ -34,17 +34,21 @@ const chunkSize = 4194304;
 const urlExpirationDuration = Duration(hours: 1);
 
 class FileService {
-  final String storageBaseUrl;
+  final List<String> authorizedBaseUrls;
   final DBService _db = GetIt.I.get<DBService>();
   final APIService _api = GetIt.I.get<APIService>();
 
   AppLogic? _logicInstance;
 
-  FileService(this.storageBaseUrl);
+  FileService(this.authorizedBaseUrls);
 
   AppLogic get _logic {
     _logicInstance ??= GetIt.I.get<AppLogic>();
     return _logicInstance!;
+  }
+
+  bool get isUsingS3 {
+    return _logic.appState.accountDetails.value?.storageMethod != 'stickerdocs';
   }
 
   Future<void> uploadFiles() async {
@@ -119,7 +123,7 @@ class FileService {
     // If we have chunked the file then we do not want to encrypt and chunk it again.
     // Continue to upload the remaining chunks.
     if (fileChunks.isNotEmpty) {
-      // The file PUT operation may have been unsuccessful
+      // The file PUT operation may have been unsuccessful so try again
       if (fileChunks.every((chunk) => chunk.url == null)) {
         await _tryPutFile(file, fileChunks);
       }
@@ -162,18 +166,21 @@ class FileService {
     request.signature =
         await crypto.signData(stringToUint8List(json.encode(request)));
 
+    // If not using S3 this will be an empty array
     final chunkUrls = await _api.putFile(request);
 
-    if (chunkUrls.isEmpty) {
-      return;
+    if (isUsingS3) {
+      if (chunkUrls.isEmpty) {
+        return;
+      }
+
+      fileChunks.forEachIndexed((index, fileChunk) {
+        fileChunk.url = chunkUrls[index];
+        fileChunk.urlCreated = isoDateNow();
+      });
+
+      await _db.updateFileChunkUploadUrls(fileChunks);
     }
-
-    fileChunks.forEachIndexed((index, fileChunk) {
-      fileChunk.url = chunkUrls[index];
-      fileChunk.urlCreated = isoDateNow();
-    });
-
-    await _db.updateFileChunkUploadUrls(fileChunks);
   }
 
   bool _isFileChunkNotUploaded(FileChunk fileChunk) {
@@ -199,7 +206,7 @@ class FileService {
   }
 
   Future<void> _refreshFileChunkUploadUrl(FileChunk fileChunk) async {
-    final url = await _api.putFileChunk(fileChunk);
+    final url = await _api.putFileChunk(fileChunk, null);
 
     if (url != null) {
       fileChunk.url = url;
@@ -282,38 +289,46 @@ class FileService {
     }
 
     await _db.incrementFileChunkUploadCounter(fileChunk);
-    await _refreshExpiredUploadUrl(fileChunk);
-
-    // Validate URL
-    if (!fileChunk.url!.startsWith(storageBaseUrl)) {
-      return false;
-    }
 
     final file = io.File(join(
         config.dataOutboxPath, fileChunk.fileId, fileChunk.index.toString()));
     final data = await file.readAsBytes();
 
-    Map<String, String> headers = {
-      'x-amz-storage-class': 'INTELLIGENT_TIERING',
-      'Content-MD5': _formatAwsContentMd5(fileChunk.md5),
-      'Content-Length': fileChunk.size.toString()
-    };
+    if (isUsingS3) {
+      await _refreshExpiredUploadUrl(fileChunk);
 
-    final client = http.Client();
-    final uploadResponse = await client.put(Uri.parse(fileChunk.url!),
-        headers: headers, body: data);
-    final response =
-        await processResponse('PUT', fileChunk.url!, headers, uploadResponse);
+      // Prevent man-in-the middle URL redirection at the SSL layer
+      if (!validateUrlAuthorized(fileChunk.url!)) {
+        return false;
+      }
 
-    if (response.statusCode != 200) {
-      // Clear the URL to trigger a a fresh S3 URL
-      fileChunk.url = null;
-      await _db.updateFileChunkUploadUrls([fileChunk]);
-      return false;
+      Map<String, String> headers = {
+        'x-amz-storage-class': 'INTELLIGENT_TIERING',
+        'Content-MD5': _formatAwsContentMd5(fileChunk.md5),
+        'Content-Length': fileChunk.size.toString()
+      };
+
+      final client = http.Client();
+      final uploadResponse = await client.put(Uri.parse(fileChunk.url!),
+          headers: headers, body: data);
+      final response =
+          await processResponse('PUT', fileChunk.url!, headers, uploadResponse);
+
+      if (response.statusCode != 200) {
+        // Clear the URL to trigger a a fresh S3 URL
+        fileChunk.url = null;
+        await _db.updateFileChunkUploadUrls([fileChunk]);
+        return false;
+      }
+    } else {
+      final response = await _api.putFileChunk(fileChunk, data);
+
+      if (response != 'OK') {
+        return false;
+      }
     }
 
     await _db.markFileChunkUploaded(fileChunk);
-
     await file.delete();
 
     return true;
@@ -339,6 +354,28 @@ class FileService {
     await _db.save(file);
 
     await _db.deleteUploadedFileChunkEntries(file.id);
+  }
+
+  bool validateUrlAuthorized(String url) {
+    final uri = Uri.parse(url);
+
+    if (uri.scheme != 'https') {
+      return false;
+    }
+
+    for (final authorizedBaseUrl in authorizedBaseUrls) {
+      if (authorizedBaseUrl.contains('*')) {
+        if (uri.host.endsWith(authorizedBaseUrl.replaceFirst('*', ''))) {
+          return true;
+        }
+      } else {
+        if (uri.host == authorizedBaseUrl) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   Future<bool> downloadFile(File file) async {
@@ -409,6 +446,7 @@ class FileService {
     }
 
     // TODO: Verify the signature prior to continuing
+    // TODO: Verify the MD5s?
 
     await _db.addFileChunkDownloadEntries(
         fileResponse.fileChunks, sourceUserId);
@@ -450,26 +488,41 @@ class FileService {
     }
 
     await _db.incrementFileChunkDownloadCounter(fileChunk);
-    await _refreshExpiredDownloadUrl(fileChunk);
 
-    // Prevent man-in-the middle URL redirection at the SSL layer
-    if (!fileChunk.url!.startsWith(storageBaseUrl)) {
-      return false;
+    Uint8List chunkData;
+
+    if (isUsingS3) {
+      await _refreshExpiredDownloadUrl(fileChunk);
+
+      // Prevent man-in-the middle URL redirection at the SSL layer
+      if (!validateUrlAuthorized(fileChunk.url!)) {
+        return false;
+      }
+
+      final client = http.Client();
+      final downloadResponse = await client.get(Uri.parse(fileChunk.url!));
+      final response =
+          await processResponse('GET', fileChunk.url!, null, downloadResponse);
+
+      if (response.statusCode != 200) {
+        // Clear the URL to trigger a a fresh S3 URL
+        fileChunk.url = null;
+        await _db.updateFileChunkDownloadUrl(fileChunk);
+        return false;
+      }
+
+      chunkData = response.bodyBytes;
+    } else {
+      final encodedChunkData = await _api.getFileChunk(fileChunk);
+
+      if (encodedChunkData == null) {
+        return false;
+      }
+
+      chunkData = base64ToUint8List(encodedChunkData);
     }
 
-    final client = http.Client();
-    final downloadResponse = await client.get(Uri.parse(fileChunk.url!));
-    final response =
-        await processResponse('GET', fileChunk.url!, null, downloadResponse);
-
-    if (response.statusCode != 200) {
-      // Clear the URL to trigger a a fresh S3 URL
-      fileChunk.url = null;
-      await _db.updateFileChunkDownloadUrl(fileChunk);
-      return false;
-    }
-
-    final hash = CryptoService.md5(response.bodyBytes);
+    final hash = CryptoService.md5(chunkData);
     if (hash != fileChunk.md5) {
       // TODO: throw some exception, raise a notification
       return false;
@@ -479,7 +532,7 @@ class FileService {
     await io.Directory(fileDataPath).create(recursive: true);
 
     final file = io.File(join(fileDataPath, fileChunk.index.toString()));
-    await file.writeAsBytes(response.bodyBytes);
+    await file.writeAsBytes(chunkData);
 
     await _db.markFileChunkDownloaded(fileChunk);
 

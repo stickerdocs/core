@@ -333,9 +333,13 @@ class APIService {
     return [];
   }
 
-  Future<String?> putFileChunk(FileChunk fileChunk) async {
-    final response =
-        await sendPut('file/${fileChunk.fileId}/chunk/${fileChunk.index}');
+  Future<String?> putFileChunk(FileChunk fileChunk, Uint8List? data) async {
+    Map<String, dynamic>? formattedBody =
+        data == null ? null : {'data': uint8ListToBase64(data)};
+
+    final response = await sendPut(
+        'file/${fileChunk.fileId}/chunk/${fileChunk.index}',
+        body: formattedBody);
 
     if (response.statusCode == HttpStatus.ok) {
       return response.body;

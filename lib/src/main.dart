@@ -28,7 +28,7 @@ class CoreConfig {
   final AppState appState;
   final Uint8List stickerDocsPublicKey;
   final Uint8List reportHarmPublicKey;
-  final String storageBaseUrl;
+  final List<String> authorizedBaseUrls;
   final bool downgradeConfigSecurity;
 
   CoreConfig({
@@ -39,7 +39,7 @@ class CoreConfig {
     required this.appState,
     required this.stickerDocsPublicKey,
     required this.reportHarmPublicKey,
-    required this.storageBaseUrl,
+    required this.authorizedBaseUrls,
     required this.downgradeConfigSecurity,
   });
 }
@@ -66,7 +66,7 @@ void registerSingletons(CoreConfig config) {
         config.appName,
         config.appVersion,
       ));
-  GetIt.I.registerLazySingleton(() => FileService(config.storageBaseUrl));
+  GetIt.I.registerLazySingleton(() => FileService(config.authorizedBaseUrls));
   GetIt.I.registerLazySingleton(() => SyncService());
   GetIt.I.registerLazySingleton(() => SyncSharedService());
   GetIt.I.registerLazySingleton(() => AppLogic(config.appState));

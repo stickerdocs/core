@@ -5,6 +5,7 @@ class AccountDetails {
   final bool? canUpload;
   final int? storageQuotaBytes;
   final int? storageBytesUsed;
+  final String? storageMethod;
   final int? invitationQuota;
   final int? invitationsUsed;
 
@@ -15,6 +16,7 @@ class AccountDetails {
     this.canUpload,
     this.storageQuotaBytes,
     this.storageBytesUsed,
+    this.storageMethod,
     this.invitationQuota,
     this.invitationsUsed,
   });
